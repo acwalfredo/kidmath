@@ -1,13 +1,14 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <!-- 設定網頁與 App 桌面圖示 -->
-<link rel="icon" type="image/png" href="/icon-512.png" />
-<link rel="apple-touch-icon" href="/icon-512.png" />
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kid Math</title>
+    <!-- 1. 瀏覽器頁籤圖示 (Favicon) -->
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=2" />
+  
+    <!-- 2. iOS / iPad 桌面上釘選的 App 圖示 -->
+    <link rel="apple-touch-icon" href="/icon-512.png?v=2" />
+  
+    <!-- 3. PWA 設定檔 (如果有使用 manifest.json) -->
+    <link rel="manifest" href="/manifest.json" />
   </head>
   <body>
     <div id="root"></div>
