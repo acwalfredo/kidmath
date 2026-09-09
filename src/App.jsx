@@ -15,10 +15,11 @@ import {
   Gift,
   Lock,
   Flame,
-  RotateCcw
+  RotateCcw,
+  Shapes
 } from 'lucide-react';
 
-// --- Web Audio 互動音效生成器 (免外部音檔) ---
+// --- Web Audio 互動音效生成器 (無須外部音檔，跨瀏覽器支援) ---
 const playSound = (type, enabled = true) => {
   if (!enabled) return;
   try {
@@ -66,7 +67,7 @@ const playSound = (type, enabled = true) => {
   } catch (e) {}
 };
 
-// --- 彩帶慶祝特效 ---
+// --- 彩帶慶祝特效組件 ---
 const Confetti = () => {
   const pieces = useMemo(() => {
     return Array.from({ length: 32 }).map((_, i) => ({
@@ -99,33 +100,35 @@ const Confetti = () => {
 };
 
 export default function App() {
-  // 'map' | 'ten-frame' | 'number-line' | 'patterns' | 'balance' | 'closet' | 'parent'
+  // 畫面路由: 'map' | 'ten-frame' | 'number-line' | 'patterns' | 'balance' | 'shapes' | 'closet' | 'parent'
   const [currentScreen, setCurrentScreen] = useState('map');
   const [soundEnabled, setSoundEnabled] = useState(true);
 
-  const [stars, setStars] = useState(24);
+  const [stars, setStars] = useState(26);
   const [streakDays, setStreakDays] = useState(3);
   const [completedCounts, setCompletedCounts] = useState({
     tenFrame: 4,
     numberLine: 3,
     patterns: 5,
     balance: 2,
+    shapes: 3,
   });
 
   const [spriteAccessory, setSpriteAccessory] = useState('crown');
   const [spriteColor, setSpriteColor] = useState('bg-amber-400');
 
-  // 護眼定時器
+  // 護眼定時器狀態
   const [remainingMinutes, setRemainingMinutes] = useState(15);
   const [showRestModal, setShowRestModal] = useState(false);
   const [celebration, setCelebration] = useState(false);
 
-  // 徽章清單
+  // 徽章成就清單
   const badges = [
     { id: 'ten-master', name: '十格陣大師', desc: '完成湊十法練習', icon: '🌟', unlocked: completedCounts.tenFrame >= 3 },
     { id: 'frog-jumper', name: '數軸跳跳蛙', desc: '掌握前跳加法與後退減法', icon: '🐸', unlocked: completedCounts.numberLine >= 3 },
     { id: 'pattern-detective', name: '規律大偵探', desc: '破解小火車圖形密碼', icon: '🔍', unlocked: completedCounts.patterns >= 3 },
     { id: 'balance-king', name: '天平平衡大師', desc: '成功解出等量代換難題', icon: '⚖️', unlocked: completedCounts.balance >= 2 },
+    { id: 'shape-wizard', name: '形狀魔法師', desc: '認識幾何圖形與邊角特徵', icon: '📐', unlocked: completedCounts.shapes >= 2 },
     { id: 'streak-star', name: '堅持小勇士', desc: '連續學習打卡 3 天', icon: '🔥', unlocked: streakDays >= 3 },
     { id: 'super-sprite', name: '小小奧數王', desc: '收集超過 20 顆數學星星', icon: '👑', unlocked: stars >= 20 },
   ];
@@ -193,7 +196,7 @@ export default function App() {
               <span>{streakDays} 天連續</span>
             </div>
 
-            {/* 音效開關 */}
+            {/* 音效切換 */}
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
               className="p-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition border-2 border-slate-300"
@@ -286,6 +289,17 @@ export default function App() {
           />
         )}
 
+        {currentScreen === 'shapes' && (
+          <ShapesModule
+            soundEnabled={soundEnabled}
+            onSuccess={() => {
+              triggerReward(3);
+              setCompletedCounts((prev) => ({ ...prev, shapes: prev.shapes + 1 }));
+            }}
+            onBack={() => setCurrentScreen('map')}
+          />
+        )}
+
         {currentScreen === 'closet' && (
           <SpriteHomeView
             stars={stars}
@@ -338,6 +352,8 @@ export default function App() {
 // 1. 世界地圖視圖
 // ==========================================
 function WorldMapView({ onSelectLevel, completedCounts, spriteAccessory, spriteColor }) {
+  const [imgError, setImgError] = useState(false);
+
   return (
     <div className="space-y-6">
       {/* 歡迎橫幅 */}
@@ -354,23 +370,38 @@ function WorldMapView({ onSelectLevel, completedCounts, spriteAccessory, spriteC
           </p>
         </div>
 
-        {/* 3D 動態精靈角色 */}
+        {/* 動態精靈角色 (具備圖片檔載入失敗降級備用機制) */}
         <div className="relative flex flex-col items-center">
-          <div className={`w-20 h-20 rounded-full ${spriteColor} shadow-2xl flex items-center justify-center relative animate-bounce border-4 border-white`}>
-            {spriteAccessory === 'crown' && <span className="absolute -top-5 text-3xl">👑</span>}
-            {spriteAccessory === 'hat' && <span className="absolute -top-6 text-3xl">🧙‍♂️</span>}
-            {spriteAccessory === 'glasses' && <span className="absolute text-2xl">🕶️</span>}
-            {spriteAccessory === 'wings' && <span className="absolute -right-4 text-3xl">🧚</span>}
-            <div className="flex gap-2">
-              <div className="w-3 h-3 bg-slate-900 rounded-full" />
-              <div className="w-3 h-3 bg-slate-900 rounded-full" />
+          {!imgError ? (
+            <div className="relative flex items-center justify-center">
+              <img
+                src="/images/my-sprite-character.png"
+                alt="數學小精靈"
+                onError={() => setImgError(true)}
+                className="w-20 h-20 md:w-24 md:h-24 object-contain animate-bounce drop-shadow-md"
+              />
+              {spriteAccessory === 'crown' && <span className="absolute -top-5 text-3xl">👑</span>}
+              {spriteAccessory === 'hat' && <span className="absolute -top-6 text-3xl">🧙‍♂️</span>}
+              {spriteAccessory === 'glasses' && <span className="absolute text-2xl">🕶️</span>}
+              {spriteAccessory === 'wings' && <span className="absolute -right-4 text-3xl">🧚</span>}
             </div>
-            <div className="w-5 h-2 border-b-4 border-slate-900 rounded-full absolute bottom-4" />
-          </div>
+          ) : (
+            <div className={`w-20 h-20 rounded-full ${spriteColor} shadow-2xl flex items-center justify-center relative animate-bounce border-4 border-white`}>
+              {spriteAccessory === 'crown' && <span className="absolute -top-5 text-3xl">👑</span>}
+              {spriteAccessory === 'hat' && <span className="absolute -top-6 text-3xl">🧙‍♂️</span>}
+              {spriteAccessory === 'glasses' && <span className="absolute text-2xl">🕶️</span>}
+              {spriteAccessory === 'wings' && <span className="absolute -right-4 text-3xl">🧚</span>}
+              <div className="flex gap-2">
+                <div className="w-3 h-3 bg-slate-900 rounded-full" />
+                <div className="w-3 h-3 bg-slate-900 rounded-full" />
+              </div>
+              <div className="w-5 h-2 border-b-4 border-slate-900 rounded-full absolute bottom-4" />
+            </div>
+          )}
         </div>
       </div>
 
-      {/* 四大島嶼矩陣 */}
+      {/* 五大島嶼矩陣 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* 島嶼 1：湊十法 */}
         <div
@@ -469,6 +500,31 @@ function WorldMapView({ onSelectLevel, completedCounts, spriteAccessory, spriteC
           <div className="mt-4 pt-3 border-t-2 border-sky-100 flex items-center justify-between text-sky-700 font-black text-sm">
             <span>讓天平平衡吧 🚀</span>
             <span className="bg-sky-200 px-2.5 py-0.5 rounded-lg text-xs">⭐️ +3</span>
+          </div>
+        </div>
+
+        {/* 島嶼 5：魔法形狀王國 */}
+        <div
+          onClick={() => onSelectLevel('shapes')}
+          className="bg-white hover:bg-teal-50/50 border-4 border-teal-300 rounded-3xl p-6 shadow-lg hover:shadow-2xl transition-all cursor-pointer transform hover:-translate-y-1 relative group md:col-span-2"
+        >
+          <div className="flex items-center justify-between">
+            <div className="w-16 h-16 rounded-2xl bg-teal-100 border-2 border-teal-300 flex items-center justify-center text-4xl shadow-inner group-hover:scale-110 transition-transform">
+              📐
+            </div>
+            <span className="bg-teal-100 text-teal-900 text-xs font-black px-3 py-1 rounded-full border border-teal-300">
+              已過關：{completedCounts.shapes} 次
+            </span>
+          </div>
+          <h3 className="text-xl font-black text-slate-800 mt-4 group-hover:text-teal-600 transition-colors">
+            第 5 島：魔法形狀王國（幾何圖形辨識）
+          </h3>
+          <p className="text-slate-500 text-xs mt-1 font-bold">
+            觀察邊長與角落特徵，解開幾何形狀的魔法密碼！
+          </p>
+          <div className="mt-4 pt-3 border-t-2 border-teal-100 flex items-center justify-between text-teal-700 font-black text-sm">
+            <span>進入形狀王國 🚀</span>
+            <span className="bg-teal-200 px-2.5 py-0.5 rounded-lg text-xs">⭐️ +3</span>
           </div>
         </div>
       </div>
@@ -703,7 +759,6 @@ function PatternTrainModule({ soundEnabled, onSuccess, onBack }) {
         <p className="text-slate-500 text-sm font-bold mt-1">{current.desc}</p>
       </div>
 
-      {/* 火車車廂 */}
       <div className="bg-purple-50 p-6 rounded-3xl border-3 border-purple-200 mb-8 shadow-inner overflow-x-auto">
         <div className="flex items-center justify-center gap-3 min-w-[300px]">
           <div className="w-16 h-16 bg-purple-600 rounded-2xl flex flex-col items-center justify-center text-white font-black text-xs shadow-md">
@@ -730,7 +785,6 @@ function PatternTrainModule({ soundEnabled, onSuccess, onBack }) {
         </div>
       </div>
 
-      {/* 選項卡片 */}
       <div className="text-center">
         <div className="text-xs font-bold text-slate-500 mb-3">請選擇正確車廂補全軌道：</div>
         <div className="flex justify-center gap-4">
@@ -781,7 +835,7 @@ function PatternTrainModule({ soundEnabled, onSuccess, onBack }) {
 // ==========================================
 function BalanceScaleModule({ soundEnabled, onSuccess, onBack }) {
   const [rabbitCount, setRabbitCount] = useState(0);
-  const targetRabbits = 4; // 2 隻熊 = 4 隻兔子
+  const targetRabbits = 4;
   const isBalanced = rabbitCount === targetRabbits;
   const tiltAngle = Math.max(-10, Math.min(10, (rabbitCount - 4) * 3));
 
@@ -818,13 +872,11 @@ function BalanceScaleModule({ soundEnabled, onSuccess, onBack }) {
         </p>
       </div>
 
-      {/* 天平繪製 */}
       <div className="bg-sky-50/80 p-6 rounded-3xl border-3 border-sky-200 mb-6 shadow-inner relative h-48 flex items-center justify-center">
         <div
           className="w-64 h-3 bg-amber-800 rounded-full transition-transform duration-500 ease-out relative flex justify-between items-center"
           style={{ transform: `rotate(${tiltAngle}deg)` }}
         >
-          {/* 左托盤 */}
           <div className="absolute -left-2 top-2 flex flex-col items-center">
             <div className="w-0.5 h-12 bg-slate-400" />
             <div className="w-24 h-12 bg-amber-200 border-2 border-amber-500 rounded-b-2xl shadow-md flex items-center justify-center text-xl">
@@ -832,7 +884,6 @@ function BalanceScaleModule({ soundEnabled, onSuccess, onBack }) {
             </div>
           </div>
 
-          {/* 右托盤 */}
           <div className="absolute -right-2 top-2 flex flex-col items-center">
             <div className="w-0.5 h-12 bg-slate-400" />
             <div className="w-24 h-12 bg-amber-200 border-2 border-amber-500 rounded-b-2xl shadow-md flex items-center justify-center text-sm font-black flex-wrap p-1">
@@ -841,7 +892,6 @@ function BalanceScaleModule({ soundEnabled, onSuccess, onBack }) {
           </div>
         </div>
 
-        {/* 底座 */}
         <div className="absolute bottom-4 flex flex-col items-center">
           <div className="w-4 h-12 bg-amber-900 rounded-t-md" />
           <div className="w-16 h-3 bg-amber-950 rounded-full" />
@@ -887,7 +937,108 @@ function BalanceScaleModule({ soundEnabled, onSuccess, onBack }) {
 }
 
 // ==========================================
-// 6. 精靈換裝小屋與成就徽章牆
+// 6. 魔法形狀王國模組 (Shapes Module)
+// ==========================================
+function ShapesModule({ soundEnabled, onSuccess, onBack }) {
+  const shapeQuestions = [
+    {
+      question: "小精靈要蓋房子屋頂，需要找一個【有 3 條邊、3 個尖尖角】的形狀！",
+      targetName: "三角形",
+      targetIcon: "🔺",
+      options: ["🔴", "🔺", "🟦", "⭐"],
+    },
+    {
+      question: "請找出【四條邊一樣長、有 4 個直直角】的正方形！",
+      targetName: "正方形",
+      targetIcon: "🟦",
+      options: ["🔴", "🔺", "🟦", "🟡"],
+    },
+    {
+      question: "車輪滾滾滾！請找出【完全沒有角、圓滾滾】的圓形！",
+      targetName: "圓形",
+      targetIcon: "🔴",
+      options: ["🔴", "🟩", "🔺", "💎"],
+    },
+  ];
+
+  const [qIndex, setQIndex] = useState(0);
+  const current = shapeQuestions[qIndex % shapeQuestions.length];
+  const [selected, setSelected] = useState(null);
+  const [isCorrect, setIsCorrect] = useState(false);
+
+  const handleSelect = (opt) => {
+    setSelected(opt);
+    if (opt === current.targetIcon) {
+      playSound('correct', soundEnabled);
+      setIsCorrect(true);
+      onSuccess();
+    } else {
+      playSound('tap', soundEnabled);
+    }
+  };
+
+  return (
+    <div className="bg-white border-4 border-teal-300 rounded-3xl p-6 shadow-2xl">
+      <div className="flex items-center justify-between mb-4">
+        <button onClick={onBack} className="text-slate-500 font-black text-sm flex items-center gap-1 hover:text-slate-800">
+          ← 返回地圖
+        </button>
+        <span className="bg-teal-100 text-teal-900 font-black text-xs px-3 py-1 rounded-full border border-teal-300">
+          幾何圖形辨識
+        </span>
+      </div>
+
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-black text-slate-800">魔法形狀王國</h2>
+        <p className="text-slate-600 text-sm font-bold mt-2 bg-teal-50 border-2 border-teal-200 p-3 rounded-2xl max-w-md mx-auto">
+          {current.question}
+        </p>
+      </div>
+
+      <div className="max-w-sm mx-auto grid grid-cols-2 gap-4 mb-6">
+        {current.options.map((opt, i) => (
+          <button
+            key={i}
+            onClick={() => handleSelect(opt)}
+            disabled={isCorrect}
+            className={`h-24 rounded-3xl text-5xl flex items-center justify-center shadow-lg border-4 transition-all active:scale-95 ${
+              selected === opt
+                ? opt === current.targetIcon
+                  ? 'bg-emerald-100 border-emerald-500 ring-4 ring-emerald-200 scale-105'
+                  : 'bg-rose-100 border-rose-400'
+                : 'bg-white border-teal-100 hover:border-teal-300'
+            }`}
+          >
+            {opt}
+          </button>
+        ))}
+      </div>
+
+      {isCorrect && (
+        <div className="text-center animate-fade-in">
+          <div className="bg-teal-100 text-teal-900 font-black px-4 py-2 rounded-2xl mb-4 inline-block border border-teal-300">
+            🎉 太棒了！成功找到【{current.targetName}】！
+          </div>
+          <div>
+            <button
+              onClick={() => {
+                setQIndex((prev) => prev + 1);
+                setSelected(null);
+                setIsCorrect(false);
+              }}
+              className="bg-amber-500 hover:bg-amber-600 text-white font-black px-6 py-3 rounded-2xl shadow-lg border-b-4 border-amber-700 active:scale-95 transition"
+            >
+              挑戰下一關形狀 ⭐️ +3
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ==========================================
+// 7. 精靈換裝小屋與成就徽章牆
 // ==========================================
 function SpriteHomeView({
   stars,
@@ -918,7 +1069,6 @@ function SpriteHomeView({
         </span>
       </div>
 
-      {/* 3D 鏡像展台 */}
       <div className="bg-gradient-to-b from-pink-100 to-amber-50 p-6 rounded-3xl border-3 border-pink-200 mb-6 flex flex-col items-center">
         <div className="relative mb-3">
           <div className={`w-28 h-28 rounded-full ${spriteColor} shadow-xl flex items-center justify-center relative border-4 border-white`}>
@@ -949,7 +1099,6 @@ function SpriteHomeView({
         </div>
       </div>
 
-      {/* 配件解鎖衣櫃 */}
       <div className="mb-6">
         <h4 className="text-base font-black text-slate-800 mb-3 flex items-center gap-1.5">
           <Gift className="w-5 h-5 text-pink-500" />
@@ -989,7 +1138,6 @@ function SpriteHomeView({
         </div>
       </div>
 
-      {/* 徽章成就牆 */}
       <div>
         <h4 className="text-base font-black text-slate-800 mb-3 flex items-center gap-1.5">
           <Award className="w-5 h-5 text-amber-500" />
@@ -1019,7 +1167,7 @@ function SpriteHomeView({
 }
 
 // ==========================================
-// 7. 家長守護與學習儀表板
+// 8. 家長守護與學習儀表板
 // ==========================================
 function ParentDashboardView({
   completedCounts,
@@ -1062,15 +1210,15 @@ function ParentDashboardView({
         </div>
         <div className="bg-emerald-50 p-3.5 rounded-2xl border border-emerald-200 text-center">
           <div className="text-2xl font-black text-emerald-700">
-            {completedCounts.tenFrame + completedCounts.numberLine + completedCounts.patterns + completedCounts.balance}
+            {completedCounts.tenFrame + completedCounts.numberLine + completedCounts.patterns + completedCounts.balance + completedCounts.shapes}
           </div>
           <div className="text-xs font-bold text-emerald-900 mt-1">累積通關數</div>
         </div>
       </div>
 
-      {/* 四大維度進度條 */}
+      {/* 五大維度進度條 */}
       <div className="space-y-4 bg-slate-50 p-5 rounded-2xl border border-slate-200 mb-6">
-        <h4 className="text-sm font-black text-slate-700">四大維度思維雷達</h4>
+        <h4 className="text-sm font-black text-slate-700">五大維度思維雷達</h4>
 
         <div>
           <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
@@ -1109,6 +1257,16 @@ function ParentDashboardView({
           </div>
           <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
             <div className="h-full bg-sky-400 rounded-full" style={{ width: `${Math.min(100, completedCounts.balance * 30)}%` }} />
+          </div>
+        </div>
+
+        <div>
+          <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
+            <span>幾何圖形與空間特徵</span>
+            <span className="text-teal-600">{Math.min(100, completedCounts.shapes * 25)}%</span>
+          </div>
+          <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+            <div className="h-full bg-teal-400 rounded-full" style={{ width: `${Math.min(100, completedCounts.shapes * 25)}%` }} />
           </div>
         </div>
       </div>
