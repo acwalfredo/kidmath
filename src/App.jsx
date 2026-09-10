@@ -18,8 +18,7 @@ import {
   Flame,
   RotateCcw,
   Shapes,
-  MoveHorizontal,
-  AlertTriangle
+  MoveHorizontal
 } from 'lucide-react';
 
 // --- 防空白頁 React 錯誤捕捉組件 (Error Boundary) ---
@@ -46,7 +45,7 @@ class ErrorBoundary extends Component {
             <div className="text-5xl mb-3">🪄</div>
             <h2 className="text-xl font-black text-slate-800 mb-2">數學魔法暫時休息中</h2>
             <p className="text-slate-600 text-xs font-bold mb-4">
-              系統偵測到小小的運行異常，請點擊下方按鈕重新啟動冒險！
+              系統偵測到運行異常，請點擊下方按鈕重新啟動冒險！
             </p>
             <button
               onClick={() => {
@@ -145,7 +144,7 @@ const Confetti = () => {
   );
 };
 
-// --- Vector SVG 幾何繪圖渲染組件 ---
+// --- Vector SVG 幾何繪圖渲染組件 (支援多樣 2D & 3D 圖形) ---
 const ShapeSVG = ({ type, className = "w-16 h-16" }) => {
   switch (type) {
     case '正方形':
@@ -239,11 +238,11 @@ function MainApp() {
   const [celebration, setCelebration] = useState(false);
 
   const badges = [
-    { id: 'ten-master', name: '十格陣大師', desc: '完成湊十法練習', icon: '🌟', unlocked: (completedCounts.tenFrame || 0) >= 3 },
-    { id: 'frog-jumper', name: '數軸跳跳蛙', desc: '掌握前跳加法與後退減法', icon: '🐸', unlocked: (completedCounts.numberLine || 0) >= 3 },
+    { id: 'ten-master', name: '十格陣大師', desc: '完成拖曳湊十法練習', icon: '🌟', unlocked: (completedCounts.tenFrame || 0) >= 3 },
+    { id: 'frog-jumper', name: '數軸跳跳蛙', desc: '掌握逐格前跳與後退運算', icon: '🐸', unlocked: (completedCounts.numberLine || 0) >= 3 },
     { id: 'pattern-detective', name: '規律大偵探', desc: '破解小火車圖形密碼', icon: '🔍', unlocked: (completedCounts.patterns || 0) >= 3 },
     { id: 'balance-king', name: '天平平衡大師', desc: '成功解出等量代換難題', icon: '⚖️', unlocked: (completedCounts.balance || 0) >= 2 },
-    { id: 'shape-wizard', name: '形狀魔法師', desc: '認識幾何圖形與 3D 體積特徵', icon: '📐', unlocked: (completedCounts.shapes || 0) >= 2 },
+    { id: 'shape-wizard', name: '幾何形狀大師', desc: '認識 2D 與 3D 圖形與特徵', icon: '📐', unlocked: (completedCounts.shapes || 0) >= 2 },
     { id: 'streak-star', name: '堅持小勇士', desc: '連續學習打卡 3 天', icon: '🔥', unlocked: streakDays >= 3 },
     { id: 'super-sprite', name: '小小奧數王', desc: '收集超過 20 顆數學星星', icon: '👑', unlocked: stars >= 20 },
   ];
@@ -454,7 +453,6 @@ function MainApp() {
   );
 }
 
-// 主進入點（包覆 Error Boundary）
 export default function App() {
   return (
     <ErrorBoundary>
@@ -621,7 +619,7 @@ function WorldMapView({ onSelectLevel, completedCounts, spriteAccessory, spriteC
   );
 }
 
-// 2. 湊十法模組
+// 2. 湊十法模組 (逐一拖曳 / 放入星星)
 function TenFrameModule({ soundEnabled, onSuccess, onBack }) {
   const [base, setBase] = useState(6);
   const [filledCount, setFilledCount] = useState(0);
@@ -746,7 +744,7 @@ function TenFrameModule({ soundEnabled, onSuccess, onBack }) {
   );
 }
 
-// 3. 數軸逐格跳跳蛙模組
+// 3. 數軸逐格跳跳蛙模組 (逐格按鍵加減數)
 function NumberLineModule({ soundEnabled, onSuccess, onBack }) {
   const problems = [
     { start: 3, jump: 4, type: 'add', text: '小青蛙原本在 3，請幫牠【向前跳 4 格】！' },
@@ -1459,17 +1457,3 @@ function ParentDashboardView({
     </div>
   );
 }
-```eof
-
----
-
-### 💡 如果畫面仍然空白，請檢查以下兩項專案設定：
-
-1. **檢查專案根目錄的 `index.html`**：
-   確保 `<body>` 內有 `<div id="root"></div>` 且正確引入了 `src/main.jsx`：
-   
-```html
-   <body>
-     <div id="root"></div>
-     <script type="module" src="/src/main.jsx"></script>
-   </body>
