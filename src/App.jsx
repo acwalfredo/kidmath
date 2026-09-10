@@ -175,7 +175,7 @@ const SpriteCharacter = ({ spriteColor, spriteAccessory, size = "normal", bounce
       >
         {!imgError ? (
           <img
-            src="/my-sprite-character.png"
+            src="images/my-sprite-character.png"
             alt="小精靈"
             className="w-full h-full object-cover"
             onError={() => setImgError(true)}
