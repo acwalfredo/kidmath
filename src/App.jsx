@@ -9,6 +9,7 @@ import {
   Shield,
   Clock,
   ArrowRight,
+  ArrowLeft,
   Home,
   CheckCircle2,
   Compass,
@@ -16,10 +17,11 @@ import {
   Lock,
   Flame,
   RotateCcw,
-  Shapes
+  Shapes,
+  MoveHorizontal
 } from 'lucide-react';
 
-// --- Web Audio 互動音效生成器 ---
+// --- Web Audio 互動音效生成器 (免外部音檔) ---
 const playSound = (type, enabled = true) => {
   if (!enabled) return;
   try {
@@ -99,11 +101,83 @@ const Confetti = () => {
   );
 };
 
+// --- Vector SVG 幾何繪圖渲染組件 ---
+const ShapeSVG = ({ type, className = "w-16 h-16" }) => {
+  switch (type) {
+    case '正方形':
+      return (
+        <svg viewBox="0 0 100 100" className={className}>
+          <rect x="15" y="15" width="70" height="70" rx="6" fill="#3b82f6" stroke="#1d4ed8" strokeWidth="6" />
+        </svg>
+      );
+    case '長方形':
+      return (
+        <svg viewBox="0 0 100 100" className={className}>
+          <rect x="10" y="25" width="80" height="50" rx="6" fill="#10b981" stroke="#047857" strokeWidth="6" />
+        </svg>
+      );
+    case '圓形':
+      return (
+        <svg viewBox="0 0 100 100" className={className}>
+          <circle cx="50" cy="50" r="38" fill="#f43f5e" stroke="#be123c" strokeWidth="6" />
+        </svg>
+      );
+    case '三角形':
+      return (
+        <svg viewBox="0 0 100 100" className={className}>
+          <polygon points="50,12 88,82 12,82" fill="#f59e0b" stroke="#b45309" strokeWidth="6" strokeLinejoin="round" />
+        </svg>
+      );
+    case '菱形':
+      return (
+        <svg viewBox="0 0 100 100" className={className}>
+          <polygon points="50,10 88,50 50,90 12,50" fill="#8b5cf6" stroke="#6d28d9" strokeWidth="6" strokeLinejoin="round" />
+        </svg>
+      );
+    case '梯形':
+      return (
+        <svg viewBox="0 0 100 100" className={className}>
+          <polygon points="28,20 72,20 88,80 12,80" fill="#ec4899" stroke="#be185d" strokeWidth="6" strokeLinejoin="round" />
+        </svg>
+      );
+    case '平行四邊形':
+      return (
+        <svg viewBox="0 0 100 100" className={className}>
+          <polygon points="30,20 90,20 70,80 10,80" fill="#06b6d4" stroke="#0e7490" strokeWidth="6" strokeLinejoin="round" />
+        </svg>
+      );
+    case '正方體':
+      return (
+        <svg viewBox="0 0 100 100" className={className}>
+          <path d="M50 12 L85 30 L85 70 L50 88 L15 70 L15 30 Z" fill="#6366f1" stroke="#4338ca" strokeWidth="5" strokeLinejoin="round" />
+          <path d="M50 12 L50 88 M15 30 L50 50 L85 30" fill="none" stroke="#4338ca" strokeWidth="5" strokeLinejoin="round" />
+        </svg>
+      );
+    case '圓柱體':
+      return (
+        <svg viewBox="0 0 100 100" className={className}>
+          <path d="M20 25 L20 75 A 30 12 0 0 0 80 75 L80 25" fill="#f97316" stroke="#c2410c" strokeWidth="5" />
+          <ellipse cx="50" cy="25" rx="30" ry="12" fill="#fdba74" stroke="#c2410c" strokeWidth="5" />
+          <ellipse cx="50" cy="75" rx="30" ry="12" fill="none" stroke="#c2410c" strokeWidth="5" strokeDasharray="4 4" />
+        </svg>
+      );
+    case '圓錐體':
+      return (
+        <svg viewBox="0 0 100 100" className={className}>
+          <path d="M50 12 L18 78 A 32 12 0 0 0 82 78 Z" fill="#14b8a6" stroke="#0f766e" strokeWidth="5" strokeLinejoin="round" />
+          <ellipse cx="50" cy="78" rx="32" ry="12" fill="#5eead4" stroke="#0f766e" strokeWidth="5" />
+        </svg>
+      );
+    default:
+      return null;
+  }
+};
+
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('map');
   const [soundEnabled, setSoundEnabled] = useState(true);
 
-  const [stars, setStars] = useState(26);
+  const [stars, setStars] = useState(28);
   const [streakDays, setStreakDays] = useState(3);
   const [completedCounts, setCompletedCounts] = useState({
     tenFrame: 4,
@@ -125,7 +199,7 @@ export default function App() {
     { id: 'frog-jumper', name: '數軸跳跳蛙', desc: '掌握前跳加法與後退減法', icon: '🐸', unlocked: completedCounts.numberLine >= 3 },
     { id: 'pattern-detective', name: '規律大偵探', desc: '破解小火車圖形密碼', icon: '🔍', unlocked: completedCounts.patterns >= 3 },
     { id: 'balance-king', name: '天平平衡大師', desc: '成功解出等量代換難題', icon: '⚖️', unlocked: completedCounts.balance >= 2 },
-    { id: 'shape-wizard', name: '形狀魔法師', desc: '認識幾何圖形與邊角特徵', icon: '📐', unlocked: completedCounts.shapes >= 2 },
+    { id: 'shape-wizard', name: '形狀魔法師', desc: '認識幾何圖形與 3D 體積特徵', icon: '📐', unlocked: completedCounts.shapes >= 2 },
     { id: 'streak-star', name: '堅持小勇士', desc: '連續學習打卡 3 天', icon: '🔥', unlocked: streakDays >= 3 },
     { id: 'super-sprite', name: '小小奧數王', desc: '收集超過 20 顆數學星星', icon: '👑', unlocked: stars >= 20 },
   ];
@@ -151,27 +225,27 @@ export default function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-200 via-amber-50 to-emerald-100 text-slate-800 font-sans select-none pb-12">
+    <div className="min-h-screen bg-gradient-to-b from-sky-200 via-amber-50 to-emerald-100 text-slate-800 font-sans select-none pb-12 overflow-x-hidden">
       {celebration && <Confetti />}
 
-      <header className="bg-white/90 backdrop-blur-md sticky top-0 z-40 border-b-4 border-amber-300 shadow-md px-4 py-3">
+      <header className="bg-white/90 backdrop-blur-md sticky top-0 z-40 border-b-4 border-amber-300 shadow-md px-3 sm:px-4 py-3">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {currentScreen !== 'map' ? (
               <button
                 onClick={() => {
                   playSound('tap', soundEnabled);
                   setCurrentScreen('map');
                 }}
-                className="flex items-center gap-1.5 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white font-black px-4 py-2 rounded-2xl text-sm transition-transform active:scale-95 shadow-md border-b-2 border-orange-600"
+                className="flex items-center gap-1.5 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white font-black px-3.5 py-2 rounded-2xl text-xs sm:text-sm transition-transform active:scale-95 shadow-md border-b-2 border-orange-600"
               >
                 <Home className="w-4 h-4" />
                 <span>返回地圖</span>
               </button>
             ) : (
               <div className="flex items-center gap-2">
-                <span className="text-3xl animate-bounce">🪄</span>
-                <span className="font-black text-xl text-amber-900 tracking-wide drop-shadow-sm">
+                <span className="text-2xl sm:text-3xl animate-bounce">🪄</span>
+                <span className="font-black text-lg sm:text-xl text-amber-900 tracking-wide drop-shadow-sm">
                   數學小精靈冒險記
                 </span>
               </div>
@@ -179,9 +253,9 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="flex items-center gap-1.5 bg-amber-100 border-2 border-amber-400 px-3 py-1 rounded-full shadow-inner">
-              <Star className="w-5 h-5 text-amber-500 fill-amber-400 animate-pulse" />
-              <span className="font-black text-amber-900 text-lg">{stars}</span>
+            <div className="flex items-center gap-1 sm:gap-1.5 bg-amber-100 border-2 border-amber-400 px-2.5 sm:px-3 py-1 rounded-full shadow-inner">
+              <Star className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 fill-amber-400 animate-pulse" />
+              <span className="font-black text-amber-900 text-sm sm:text-lg">{stars}</span>
             </div>
 
             <div className="hidden sm:flex items-center gap-1 bg-rose-100 border-2 border-rose-300 px-3 py-1 rounded-full text-xs font-black text-rose-700">
@@ -193,7 +267,7 @@ export default function App() {
               onClick={() => setSoundEnabled(!soundEnabled)}
               className="p-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition border-2 border-slate-300"
             >
-              {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+              {soundEnabled ? <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" /> : <VolumeX className="w-4 h-4 sm:w-5 sm:h-5" />}
             </button>
 
             <button
@@ -204,7 +278,7 @@ export default function App() {
               className="p-2 rounded-2xl bg-pink-100 hover:bg-pink-200 text-pink-700 transition border-2 border-pink-300 shadow-sm"
               title="精靈小屋與徽章牆"
             >
-              <Award className="w-5 h-5" />
+              <Award className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
             <button
@@ -215,13 +289,13 @@ export default function App() {
               className="p-2 rounded-2xl bg-indigo-100 hover:bg-indigo-200 text-indigo-700 transition border-2 border-indigo-300 shadow-sm"
               title="家長守護與發展儀表板"
             >
-              <Shield className="w-5 h-5" />
+              <Shield className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 pt-6">
+      <main className="max-w-4xl mx-auto px-3 sm:px-4 pt-4 sm:pt-6">
         {currentScreen === 'map' && (
           <WorldMapView
             onSelectLevel={(key) => {
@@ -336,106 +410,108 @@ export default function App() {
   );
 }
 
+// ==========================================
 // 1. 世界地圖視圖
+// ==========================================
 function WorldMapView({ onSelectLevel, completedCounts, spriteAccessory, spriteColor }) {
   return (
-    <div className="space-y-6">
-      <div className="bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 rounded-3xl p-6 shadow-xl border-4 border-white flex items-center justify-between relative overflow-hidden">
+    <div className="space-y-5 sm:space-y-6">
+      <div className="bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 rounded-3xl p-5 sm:p-6 shadow-xl border-4 border-white flex items-center justify-between relative overflow-hidden">
         <div className="z-10 max-w-xs md:max-w-md text-white">
           <span className="inline-block bg-white/30 backdrop-blur-md text-white text-xs font-black px-3 py-1 rounded-full mb-2 border border-white/40">
             ✨ CPA 具象數學探險
           </span>
-          <h2 className="text-2xl md:text-3xl font-black drop-shadow-md">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-black drop-shadow-md">
             歡迎來到數學奇幻島！
           </h2>
-          <p className="text-white/90 text-xs md:text-sm mt-1 font-bold">
+          <p className="text-white/90 text-xs sm:text-sm mt-1 font-bold">
             點擊下方島嶼，和你的專屬小精靈一起解開數學謎題！
           </p>
         </div>
 
-        <div className="relative flex flex-col items-center">
-          <div className={`w-20 h-20 rounded-full ${spriteColor} shadow-2xl flex items-center justify-center relative animate-bounce border-4 border-white`}>
-            {spriteAccessory === 'crown' && <span className="absolute -top-5 text-3xl">👑</span>}
-            {spriteAccessory === 'hat' && <span className="absolute -top-6 text-3xl">🧙‍♂️</span>}
-            {spriteAccessory === 'glasses' && <span className="absolute text-2xl">🕶️</span>}
-            {spriteAccessory === 'wings' && <span className="absolute -right-4 text-3xl">🧚</span>}
-            <div className="flex gap-2">
-              <div className="w-3 h-3 bg-slate-900 rounded-full" />
-              <div className="w-3 h-3 bg-slate-900 rounded-full" />
+        <div className="relative flex flex-col items-center shrink-0">
+          <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full ${spriteColor} shadow-2xl flex items-center justify-center relative animate-bounce border-4 border-white`}>
+            {spriteAccessory === 'crown' && <span className="absolute -top-5 text-2xl sm:text-3xl">👑</span>}
+            {spriteAccessory === 'hat' && <span className="absolute -top-6 text-2xl sm:text-3xl">🧙‍♂️</span>}
+            {spriteAccessory === 'glasses' && <span className="absolute text-xl sm:text-2xl">🕶️</span>}
+            {spriteAccessory === 'wings' && <span className="absolute -right-4 text-2xl sm:text-3xl">🧚</span>}
+            <div className="flex gap-1.5 sm:gap-2">
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-slate-900 rounded-full" />
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-slate-900 rounded-full" />
             </div>
-            <div className="w-5 h-2 border-b-4 border-slate-900 rounded-full absolute bottom-4" />
+            <div className="w-4 sm:w-5 h-1.5 sm:h-2 border-b-4 border-slate-900 rounded-full absolute bottom-3 sm:bottom-4" />
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
         <div
           onClick={() => onSelectLevel('ten-frame')}
-          className="bg-white hover:bg-amber-50/50 border-4 border-amber-300 rounded-3xl p-6 shadow-lg hover:shadow-2xl transition-all cursor-pointer transform hover:-translate-y-1 relative group"
+          className="bg-white hover:bg-amber-50/50 border-4 border-amber-300 rounded-3xl p-5 sm:p-6 shadow-lg hover:shadow-2xl transition-all cursor-pointer transform hover:-translate-y-1 relative group"
         >
           <div className="flex items-center justify-between">
-            <div className="w-16 h-16 rounded-2xl bg-amber-100 border-2 border-amber-300 flex items-center justify-center text-4xl shadow-inner group-hover:scale-110 transition-transform">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-amber-100 border-2 border-amber-300 flex items-center justify-center text-3xl sm:text-4xl shadow-inner group-hover:scale-110 transition-transform">
               🏰
             </div>
             <span className="bg-amber-100 text-amber-900 text-xs font-black px-3 py-1 rounded-full border border-amber-300">
               已過關：{completedCounts.tenFrame} 次
             </span>
           </div>
-          <h3 className="text-xl font-black text-slate-800 mt-4 group-hover:text-amber-600 transition-colors">
-            第 1 島：數字城堡（湊十法）
+          <h3 className="text-lg sm:text-xl font-black text-slate-800 mt-3 sm:mt-4 group-hover:text-amber-600 transition-colors">
+            第 1 島：數字城堡（拖曳湊十法）
           </h3>
           <p className="text-slate-500 text-xs mt-1 font-bold">
-            十格陣視覺化，找尋 10 的好朋友，建立湊十基本功！
+            十格陣拖曳/點擊填滿星星，感受 10 的合成感！
           </p>
-          <div className="mt-4 pt-3 border-t-2 border-amber-100 flex items-center justify-between text-amber-700 font-black text-sm">
-            <span>進入湊十法冒險 🚀</span>
+          <div className="mt-3 sm:mt-4 pt-3 border-t-2 border-amber-100 flex items-center justify-between text-amber-700 font-black text-sm">
+            <span>進入城堡放星星 🚀</span>
             <span className="bg-amber-200 px-2.5 py-0.5 rounded-lg text-xs">⭐️ +2</span>
           </div>
         </div>
 
         <div
           onClick={() => onSelectLevel('number-line')}
-          className="bg-white hover:bg-emerald-50/50 border-4 border-emerald-300 rounded-3xl p-6 shadow-lg hover:shadow-2xl transition-all cursor-pointer transform hover:-translate-y-1 relative group"
+          className="bg-white hover:bg-emerald-50/50 border-4 border-emerald-300 rounded-3xl p-5 sm:p-6 shadow-lg hover:shadow-2xl transition-all cursor-pointer transform hover:-translate-y-1 relative group"
         >
           <div className="flex items-center justify-between">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-100 border-2 border-emerald-300 flex items-center justify-center text-4xl shadow-inner group-hover:scale-110 transition-transform">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-emerald-100 border-2 border-emerald-300 flex items-center justify-center text-3xl sm:text-4xl shadow-inner group-hover:scale-110 transition-transform">
               🐸
             </div>
             <span className="bg-emerald-100 text-emerald-900 text-xs font-black px-3 py-1 rounded-full border border-emerald-300">
               已過關：{completedCounts.numberLine} 次
             </span>
           </div>
-          <h3 className="text-xl font-black text-slate-800 mt-4 group-hover:text-emerald-600 transition-colors">
-            第 2 島：奇幻森林（數軸加減法）
+          <h3 className="text-lg sm:text-xl font-black text-slate-800 mt-3 sm:mt-4 group-hover:text-emerald-600 transition-colors">
+            第 2 島：奇幻森林（逐格跳躍數軸）
           </h3>
           <p className="text-slate-500 text-xs mt-1 font-bold">
-            跟著小青蛙在數軸上前跳後退，直觀理解加減法！
+            逐格點選向前或向後跳躍，直觀掌握加減法！
           </p>
-          <div className="mt-4 pt-3 border-t-2 border-emerald-100 flex items-center justify-between text-emerald-700 font-black text-sm">
-            <span>小蛙向前跳跳跳 🚀</span>
+          <div className="mt-3 sm:mt-4 pt-3 border-t-2 border-emerald-100 flex items-center justify-between text-emerald-700 font-black text-sm">
+            <span>一步步向前跳 🚀</span>
             <span className="bg-emerald-200 px-2.5 py-0.5 rounded-lg text-xs">⭐️ +2</span>
           </div>
         </div>
 
         <div
           onClick={() => onSelectLevel('patterns')}
-          className="bg-white hover:bg-purple-50/50 border-4 border-purple-300 rounded-3xl p-6 shadow-lg hover:shadow-2xl transition-all cursor-pointer transform hover:-translate-y-1 relative group"
+          className="bg-white hover:bg-purple-50/50 border-4 border-purple-300 rounded-3xl p-5 sm:p-6 shadow-lg hover:shadow-2xl transition-all cursor-pointer transform hover:-translate-y-1 relative group"
         >
           <div className="flex items-center justify-between">
-            <div className="w-16 h-16 rounded-2xl bg-purple-100 border-2 border-purple-300 flex items-center justify-center text-4xl shadow-inner group-hover:scale-110 transition-transform">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-purple-100 border-2 border-purple-300 flex items-center justify-center text-3xl sm:text-4xl shadow-inner group-hover:scale-110 transition-transform">
               🚂
             </div>
             <span className="bg-purple-100 text-purple-900 text-xs font-black px-3 py-1 rounded-full border border-purple-300">
               已過關：{completedCounts.patterns} 次
             </span>
           </div>
-          <h3 className="text-xl font-black text-slate-800 mt-4 group-hover:text-purple-600 transition-colors">
+          <h3 className="text-lg sm:text-xl font-black text-slate-800 mt-3 sm:mt-4 group-hover:text-purple-600 transition-colors">
             第 3 島：規律小火車（奧數圖形密碼）
           </h3>
           <p className="text-slate-500 text-xs mt-1 font-bold">
             修復小火車車廂，找出重複的隱藏邏輯規律！
           </p>
-          <div className="mt-4 pt-3 border-t-2 border-purple-100 flex items-center justify-between text-purple-700 font-black text-sm">
+          <div className="mt-3 sm:mt-4 pt-3 border-t-2 border-purple-100 flex items-center justify-between text-purple-700 font-black text-sm">
             <span>修復火車軌道 🚀</span>
             <span className="bg-purple-200 px-2.5 py-0.5 rounded-lg text-xs">⭐️ +3</span>
           </div>
@@ -443,23 +519,23 @@ function WorldMapView({ onSelectLevel, completedCounts, spriteAccessory, spriteC
 
         <div
           onClick={() => onSelectLevel('balance')}
-          className="bg-white hover:bg-sky-50/50 border-4 border-sky-300 rounded-3xl p-6 shadow-lg hover:shadow-2xl transition-all cursor-pointer transform hover:-translate-y-1 relative group"
+          className="bg-white hover:bg-sky-50/50 border-4 border-sky-300 rounded-3xl p-5 sm:p-6 shadow-lg hover:shadow-2xl transition-all cursor-pointer transform hover:-translate-y-1 relative group"
         >
           <div className="flex items-center justify-between">
-            <div className="w-16 h-16 rounded-2xl bg-sky-100 border-2 border-sky-300 flex items-center justify-center text-4xl shadow-inner group-hover:scale-110 transition-transform">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-sky-100 border-2 border-sky-300 flex items-center justify-center text-3xl sm:text-4xl shadow-inner group-hover:scale-110 transition-transform">
               ⚖️
             </div>
             <span className="bg-sky-100 text-sky-900 text-xs font-black px-3 py-1 rounded-full border border-sky-300">
               已過關：{completedCounts.balance} 次
             </span>
           </div>
-          <h3 className="text-xl font-black text-slate-800 mt-4 group-hover:text-sky-600 transition-colors">
+          <h3 className="text-lg sm:text-xl font-black text-slate-800 mt-3 sm:mt-4 group-hover:text-sky-600 transition-colors">
             第 4 島：神奇天平（奧數等量代換）
           </h3>
           <p className="text-slate-500 text-xs mt-1 font-bold">
             小動物平衡替換，提前建立小學代數思維！
           </p>
-          <div className="mt-4 pt-3 border-t-2 border-sky-100 flex items-center justify-between text-sky-700 font-black text-sm">
+          <div className="mt-3 sm:mt-4 pt-3 border-t-2 border-sky-100 flex items-center justify-between text-sky-700 font-black text-sm">
             <span>讓天平平衡吧 🚀</span>
             <span className="bg-sky-200 px-2.5 py-0.5 rounded-lg text-xs">⭐️ +3</span>
           </div>
@@ -467,24 +543,24 @@ function WorldMapView({ onSelectLevel, completedCounts, spriteAccessory, spriteC
 
         <div
           onClick={() => onSelectLevel('shapes')}
-          className="bg-white hover:bg-teal-50/50 border-4 border-teal-300 rounded-3xl p-6 shadow-lg hover:shadow-2xl transition-all cursor-pointer transform hover:-translate-y-1 relative group md:col-span-2"
+          className="bg-white hover:bg-teal-50/50 border-4 border-teal-300 rounded-3xl p-5 sm:p-6 shadow-lg hover:shadow-2xl transition-all cursor-pointer transform hover:-translate-y-1 relative group md:col-span-2"
         >
           <div className="flex items-center justify-between">
-            <div className="w-16 h-16 rounded-2xl bg-teal-100 border-2 border-teal-300 flex items-center justify-center text-4xl shadow-inner group-hover:scale-110 transition-transform">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-teal-100 border-2 border-teal-300 flex items-center justify-center text-3xl sm:text-4xl shadow-inner group-hover:scale-110 transition-transform">
               📐
             </div>
             <span className="bg-teal-100 text-teal-900 text-xs font-black px-3 py-1 rounded-full border border-teal-300">
               已過關：{completedCounts.shapes} 次
             </span>
           </div>
-          <h3 className="text-xl font-black text-slate-800 mt-4 group-hover:text-teal-600 transition-colors">
-            第 5 島：魔法形狀王國（幾何圖形辨識）
+          <h3 className="text-lg sm:text-xl font-black text-slate-800 mt-3 sm:mt-4 group-hover:text-teal-600 transition-colors">
+            第 5 島：魔法形狀王國（2D 與 3D 幾何特徵）
           </h3>
           <p className="text-slate-500 text-xs mt-1 font-bold">
-            觀察邊長與角落特徵，解開幾何形狀的魔法密碼！
+            辨識菱形、長方形、梯形、平行四邊形、正方體、圓柱體與圓錐體！
           </p>
-          <div className="mt-4 pt-3 border-t-2 border-teal-100 flex items-center justify-between text-teal-700 font-black text-sm">
-            <span>進入形狀王國 🚀</span>
+          <div className="mt-3 sm:mt-4 pt-3 border-t-2 border-teal-100 flex items-center justify-between text-teal-700 font-black text-sm">
+            <span>進入幾何形狀王國 🚀</span>
             <span className="bg-teal-200 px-2.5 py-0.5 rounded-lg text-xs">⭐️ +3</span>
           </div>
         </div>
@@ -493,95 +569,128 @@ function WorldMapView({ onSelectLevel, completedCounts, spriteAccessory, spriteC
   );
 }
 
-// 2. 湊十法模組
+// ==========================================
+// 2. 湊十法模組 (逐一拖曳 / 放入星星)
+// ==========================================
 function TenFrameModule({ soundEnabled, onSuccess, onBack }) {
-  const [base, setBase] = useState(7);
-  const [filled, setFilled] = useState(0);
+  const [base, setBase] = useState(6);
+  const [filledCount, setFilledCount] = useState(0);
   const [isCorrect, setIsCorrect] = useState(false);
   const needed = 10 - base;
 
-  const handleCellClick = (idx) => {
-    if (isCorrect) return;
-    if (idx < base) return;
-
-    const count = idx - base + 1;
+  const handleAddStar = () => {
+    if (isCorrect || filledCount >= needed) return;
     playSound('tap', soundEnabled);
-    setFilled(count);
+    const newCount = filledCount + 1;
+    setFilledCount(newCount);
 
-    if (count === needed) {
+    if (newCount === needed) {
       setIsCorrect(true);
       onSuccess();
     }
   };
 
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e, cellIdx) => {
+    e.preventDefault();
+    if (cellIdx >= base && filledCount < needed) {
+      handleAddStar();
+    }
+  };
+
   return (
-    <div className="bg-white border-4 border-amber-300 rounded-3xl p-6 shadow-2xl">
+    <div className="bg-white border-4 border-amber-300 rounded-3xl p-4 sm:p-6 shadow-2xl max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-4">
-        <button onClick={onBack} className="text-slate-500 font-black text-sm flex items-center gap-1 hover:text-slate-800">
+        <button onClick={onBack} className="text-slate-500 font-black text-xs sm:text-sm flex items-center gap-1 hover:text-slate-800">
           ← 返回地圖
         </button>
         <span className="bg-amber-100 text-amber-900 font-black text-xs px-3 py-1 rounded-full border border-amber-300">
-          湊十法：找 10 的好朋友
+          逐一拖曳湊十法
         </span>
       </div>
 
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-black text-slate-800">
-          十格陣裡已有 <span className="text-amber-600">{base}</span> 顆星星 ⭐
+      <div className="text-center mb-5">
+        <h2 className="text-xl sm:text-2xl font-black text-slate-800">
+          十格陣已有 <span className="text-amber-600">{base}</span> 顆黃金星 ⭐
         </h2>
-        <p className="text-slate-500 text-sm font-bold mt-1">
-          點擊空格補滿十格陣，看看還要幾顆？
+        <p className="text-slate-600 text-xs sm:text-sm font-bold mt-1">
+          請從下方「星星寶盒」拖曳或點擊星星，一顆顆填滿剩餘的空格！
         </p>
       </div>
 
-      <div className="max-w-md mx-auto bg-amber-100/60 p-4 rounded-3xl border-4 border-amber-300 mb-6 shadow-inner">
-        <div className="grid grid-cols-5 gap-3">
+      {/* 十格陣 Grid */}
+      <div className="bg-amber-100/70 p-3 sm:p-5 rounded-3xl border-4 border-amber-300 mb-6 shadow-inner">
+        <div className="grid grid-cols-5 gap-2 sm:gap-3">
           {Array.from({ length: 10 }).map((_, idx) => {
-            const isBase = idx < base;
-            const isFilled = idx >= base && idx < base + filled;
+            const isBaseCell = idx < base;
+            const isFilledCell = idx >= base && idx < base + filledCount;
 
             return (
               <div
                 key={idx}
-                onClick={() => handleCellClick(idx)}
-                className={`h-16 rounded-2xl flex items-center justify-center text-3xl font-black cursor-pointer transition-all border-3 ${
-                  isBase
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, idx)}
+                onClick={() => {
+                  if (!isBaseCell && !isFilledCell) handleAddStar();
+                }}
+                className={`h-14 sm:h-20 rounded-2xl flex items-center justify-center text-2xl sm:text-4xl font-black transition-all border-3 ${
+                  isBaseCell
                     ? 'bg-amber-300 border-amber-500 shadow-md'
-                    : isFilled
-                    ? 'bg-emerald-400 border-emerald-600 shadow-lg scale-105'
-                    : 'bg-white border-dashed border-amber-300 hover:border-amber-500'
+                    : isFilledCell
+                    ? 'bg-emerald-400 border-emerald-600 shadow-lg scale-105 animate-pulse'
+                    : 'bg-white border-dashed border-amber-300 hover:border-amber-500 cursor-pointer'
                 }`}
               >
-                {isBase && '⭐'}
-                {isFilled && '🟢'}
+                {isBaseCell && '⭐'}
+                {isFilledCell && '🟢'}
               </div>
             );
           })}
         </div>
       </div>
 
-      <div className="bg-slate-100 border-2 border-slate-300 rounded-2xl p-4 max-w-xs mx-auto text-center mb-6 shadow-inner">
-        <div className="text-3xl font-black tracking-wider text-slate-800">
+      {/* 算式與星星寶盒 (Star Supply Bank) */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50 border-2 border-slate-200 p-4 rounded-2xl mb-6">
+        <div className="text-2xl sm:text-3xl font-black text-slate-800">
           <span className="text-amber-600">{base}</span> +{' '}
-          <span className="text-emerald-600">{filled || '?'}</span> = 10
+          <span className="text-emerald-600 underline font-extrabold">{filledCount}</span> = 10
         </div>
+
+        {/* 拖曳按鈕 */}
+        {!isCorrect && (
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-bold text-slate-500">星星寶盒 ➔</span>
+            <div
+              draggable
+              onDragStart={(e) => e.dataTransfer.setData('text/plain', 'star')}
+              onClick={handleAddStar}
+              className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-400 to-teal-300 border-3 border-emerald-600 shadow-lg flex items-center justify-center text-3xl cursor-grab active:cursor-grabbing hover:scale-110 transition transform"
+              title="按一下或拖曳進格子"
+            >
+              🟢
+            </div>
+          </div>
+        )}
       </div>
 
       {isCorrect && (
         <div className="text-center animate-fade-in">
-          <div className="bg-emerald-100 text-emerald-900 border-2 border-emerald-300 font-black px-4 py-2 rounded-2xl mb-4 inline-block shadow-sm">
-            🎉 答對了！{base} + {needed} = 10！
+          <div className="bg-emerald-100 text-emerald-900 border-2 border-emerald-300 font-black px-4 py-2 rounded-2xl mb-4 inline-block shadow-sm text-sm sm:text-base">
+            🎉 成功放入 {needed} 顆星星！{base} + {needed} = 10 滿十成功！
           </div>
           <div>
             <button
               onClick={() => {
                 setBase((prev) => (prev % 4) + 5);
-                setFilled(0);
+                setFilledCount(0);
                 setIsCorrect(false);
               }}
-              className="bg-amber-500 hover:bg-amber-600 text-white font-black px-6 py-3 rounded-2xl shadow-lg border-b-4 border-amber-700 active:scale-95 transition"
+              className="bg-amber-500 hover:bg-amber-600 text-white font-black px-6 py-3 rounded-2xl shadow-lg border-b-4 border-amber-700 active:scale-95 transition text-sm sm:text-base"
             >
-              下一題 ⭐️ +2
+              挑戰下一個數字城堡 ⭐️ +2
             </button>
           </div>
         </div>
@@ -590,48 +699,84 @@ function TenFrameModule({ soundEnabled, onSuccess, onBack }) {
   );
 }
 
-// 3. 數軸跳跳蛙模組
+// ==========================================
+// 3. 數軸逐格跳跳蛙模組 (逐格按鍵加減數)
+// ==========================================
 function NumberLineModule({ soundEnabled, onSuccess, onBack }) {
-  const [pos, setPos] = useState(3);
-  const target = 7;
+  const problems = [
+    { start: 3, jump: 4, type: 'add', text: '小青蛙原本在 3，請幫牠【向前跳 4 格】！' },
+    { start: 8, jump: 3, type: 'sub', text: '小青蛙站在 8，請幫牠【向後退 3 格】！' },
+    { start: 5, jump: 5, type: 'add', text: '小青蛙在 5，請幫牠【向前跳 5 格】湊滿 10！' },
+    { start: 9, jump: 4, type: 'sub', text: '小青蛙站在 9，請幫牠【向後退 4 格】！' },
+  ];
+
+  const [pIndex, setPIndex] = useState(0);
+  const currentP = problems[pIndex % problems.length];
+  const targetAnswer = currentP.type === 'add' ? currentP.start + currentP.jump : currentP.start - currentP.jump;
+
+  const [currentFrogPos, setCurrentFrogPos] = useState(currentP.start);
+  const [steppedCount, setSteppedCount] = useState(0);
   const [isDone, setIsDone] = useState(false);
 
-  const jump = () => {
+  useEffect(() => {
+    setCurrentFrogPos(currentP.start);
+    setSteppedCount(0);
+    setIsDone(false);
+  }, [pIndex]);
+
+  const handleStepHop = (direction) => {
+    if (isDone) return;
+
     playSound('jump', soundEnabled);
-    setPos(target);
-    setIsDone(true);
-    onSuccess();
+    let newPos = currentFrogPos;
+    const newSteps = steppedCount + 1;
+
+    if (direction === 'forward') {
+      newPos = Math.min(10, currentFrogPos + 1);
+    } else {
+      newPos = Math.max(0, currentFrogPos - 1);
+    }
+
+    setCurrentFrogPos(newPos);
+    setSteppedCount(newSteps);
+
+    // 當青蛙到達目標位置時，即完成答題並觸發過關獎勵
+    if (newPos === targetAnswer) {
+      setIsDone(true);
+      onSuccess();
+    }
   };
 
   return (
-    <div className="bg-white border-4 border-emerald-300 rounded-3xl p-6 shadow-2xl">
+    <div className="bg-white border-4 border-emerald-300 rounded-3xl p-4 sm:p-6 shadow-2xl max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-4">
-        <button onClick={onBack} className="text-slate-500 font-black text-sm flex items-center gap-1 hover:text-slate-800">
+        <button onClick={onBack} className="text-slate-500 font-black text-xs sm:text-sm flex items-center gap-1 hover:text-slate-800">
           ← 返回地圖
         </button>
         <span className="bg-emerald-100 text-emerald-900 font-black text-xs px-3 py-1 rounded-full border border-emerald-300">
-          數軸小蛙跳
+          數軸逐格按鍵跳躍
         </span>
       </div>
 
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-black text-slate-800">
-          小青蛙在 <span className="text-emerald-600">3</span>，向前跳 <span className="text-amber-600">4</span> 格！
+      <div className="text-center mb-5">
+        <h2 className="text-lg sm:text-2xl font-black text-slate-800">
+          {currentP.text}
         </h2>
-        <div className="mt-2 text-xl font-black text-slate-700 bg-emerald-50 border-2 border-emerald-200 inline-block px-4 py-1 rounded-full">
-          3 + 4 = {isDone ? target : '?'}
+        <div className="mt-2 text-lg sm:text-xl font-black text-slate-700 bg-emerald-50 border-2 border-emerald-200 inline-block px-4 py-1 rounded-full">
+          {currentP.start} {currentP.type === 'add' ? '+' : '-'} {currentP.jump} = {isDone ? targetAnswer : '?'}
         </div>
       </div>
 
-      <div className="bg-emerald-50/80 p-6 rounded-3xl border-3 border-emerald-200 mb-8 relative">
+      {/* 數軸展示 */}
+      <div className="bg-emerald-50/90 p-4 sm:p-6 rounded-3xl border-3 border-emerald-200 mb-6 relative">
         <div className="relative h-16 mb-2">
           <div
-            className="absolute transition-all duration-500 -translate-x-1/2 flex flex-col items-center"
-            style={{ left: `${(pos / 10) * 100}%` }}
+            className="absolute transition-all duration-300 -translate-x-1/2 flex flex-col items-center"
+            style={{ left: `${(currentFrogPos / 10) * 100}%` }}
           >
-            <span className="text-4xl animate-bounce">🐸</span>
-            <span className="text-xs font-black bg-emerald-600 text-white px-2 py-0.5 rounded-full mt-1">
-              {pos}
+            <span className="text-3xl sm:text-4xl animate-bounce">🐸</span>
+            <span className="text-xs font-black bg-emerald-600 text-white px-2 py-0.5 rounded-full mt-0.5">
+              {currentFrogPos}
             </span>
           </div>
         </div>
@@ -639,33 +784,44 @@ function NumberLineModule({ soundEnabled, onSuccess, onBack }) {
         <div className="border-b-4 border-slate-700 flex justify-between relative px-1">
           {Array.from({ length: 11 }).map((_, i) => (
             <div key={i} className="flex flex-col items-center relative -bottom-2">
-              <div className="w-1.5 h-4 bg-slate-700 rounded-full" />
-              <span className="text-sm font-black text-slate-700 mt-1">{i}</span>
+              <div className="w-1 sm:w-1.5 h-3 sm:h-4 bg-slate-700 rounded-full" />
+              <span className="text-xs sm:text-sm font-black text-slate-700 mt-1">{i}</span>
             </div>
           ))}
         </div>
       </div>
 
+      {/* 逐格跳躍控制按鈕 (Step Buttons) */}
       <div className="text-center">
         {!isDone ? (
-          <button
-            onClick={jump}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white font-black px-8 py-3.5 rounded-2xl shadow-xl border-b-4 border-emerald-700 active:scale-95 transition text-lg flex items-center gap-2 mx-auto"
-          >
-            <span>讓小青蛙向前跳！</span>
-            <ArrowRight className="w-5 h-5" />
-          </button>
+          <div className="flex justify-center items-center gap-3 sm:gap-4">
+            <button
+              onClick={() => handleStepHop('backward')}
+              className="bg-rose-500 hover:bg-rose-600 text-white font-black px-4 sm:px-6 py-3 rounded-2xl shadow-lg border-b-4 border-rose-700 active:scale-95 transition text-sm sm:text-base flex items-center gap-1.5"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span>-1 向後退</span>
+            </button>
+
+            <button
+              onClick={() => handleStepHop('forward')}
+              className="bg-emerald-500 hover:bg-emerald-600 text-white font-black px-4 sm:px-6 py-3 rounded-2xl shadow-lg border-b-4 border-emerald-700 active:scale-95 transition text-sm sm:text-base flex items-center gap-1.5"
+            >
+              <span>+1 向前跳</span>
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </div>
         ) : (
           <div className="animate-fade-in">
-            <div className="bg-emerald-100 text-emerald-900 border-2 border-emerald-300 font-black px-4 py-2 rounded-2xl mb-4 inline-block">
-              🎉 順利抵達第 7 格！
+            <div className="bg-emerald-100 text-emerald-900 border-2 border-emerald-300 font-black px-4 py-2 rounded-2xl mb-4 inline-block text-sm sm:text-base">
+              🎉 棒極了！小青蛙成功抵達第 {targetAnswer} 格！
             </div>
             <div>
               <button
-                onClick={onBack}
-                className="bg-amber-500 hover:bg-amber-600 text-white font-black px-6 py-3 rounded-2xl shadow-lg border-b-4 border-amber-700 active:scale-95 transition"
+                onClick={() => setPIndex((prev) => prev + 1)}
+                className="bg-amber-500 hover:bg-amber-600 text-white font-black px-6 py-3 rounded-2xl shadow-lg border-b-4 border-amber-700 active:scale-95 transition text-sm sm:text-base"
               >
-                完成挑戰 ⭐️ +2
+                挑戰下一題跳躍 ⭐️ +2
               </button>
             </div>
           </div>
@@ -675,7 +831,9 @@ function NumberLineModule({ soundEnabled, onSuccess, onBack }) {
   );
 }
 
+// ==========================================
 // 4. 規律小火車模組
+// ==========================================
 function PatternTrainModule({ soundEnabled, onSuccess, onBack }) {
   const patternsList = [
     { seq: ['🍎', '🍌', '🍎', '🍌', '?'], answer: '🍎', options: ['🍎', '🍌', '🍇'], desc: '蘋果、香蕉、蘋果、香蕉...下一個是？' },
@@ -699,9 +857,9 @@ function PatternTrainModule({ soundEnabled, onSuccess, onBack }) {
   };
 
   return (
-    <div className="bg-white border-4 border-purple-300 rounded-3xl p-6 shadow-2xl">
+    <div className="bg-white border-4 border-purple-300 rounded-3xl p-4 sm:p-6 shadow-2xl max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-4">
-        <button onClick={onBack} className="text-slate-500 font-black text-sm flex items-center gap-1 hover:text-slate-800">
+        <button onClick={onBack} className="text-slate-500 font-black text-xs sm:text-sm flex items-center gap-1 hover:text-slate-800">
           ← 返回地圖
         </button>
         <span className="bg-purple-100 text-purple-900 font-black text-xs px-3 py-1 rounded-full border border-purple-300">
@@ -709,14 +867,14 @@ function PatternTrainModule({ soundEnabled, onSuccess, onBack }) {
         </span>
       </div>
 
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-black text-slate-800">圖形密碼小火車</h2>
-        <p className="text-slate-500 text-sm font-bold mt-1">{current.desc}</p>
+      <div className="text-center mb-5">
+        <h2 className="text-xl sm:text-2xl font-black text-slate-800">圖形密碼小火車</h2>
+        <p className="text-slate-500 text-xs sm:text-sm font-bold mt-1">{current.desc}</p>
       </div>
 
-      <div className="bg-purple-50 p-6 rounded-3xl border-3 border-purple-200 mb-8 shadow-inner overflow-x-auto">
-        <div className="flex items-center justify-center gap-3 min-w-[300px]">
-          <div className="w-16 h-16 bg-purple-600 rounded-2xl flex flex-col items-center justify-center text-white font-black text-xs shadow-md">
+      <div className="bg-purple-50 p-4 sm:p-6 rounded-3xl border-3 border-purple-200 mb-6 shadow-inner overflow-x-auto">
+        <div className="flex items-center justify-center gap-2 sm:gap-3 min-w-[280px]">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 bg-purple-600 rounded-2xl flex flex-col items-center justify-center text-white font-black text-xs shadow-md shrink-0">
             <span className="text-2xl">🚂</span>
           </div>
 
@@ -725,7 +883,7 @@ function PatternTrainModule({ soundEnabled, onSuccess, onBack }) {
             return (
               <div
                 key={i}
-                className={`w-14 h-16 rounded-2xl flex items-center justify-center text-3xl font-black shadow-sm border-2 ${
+                className={`w-12 h-14 sm:w-14 sm:h-16 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl font-black shadow-sm border-2 ${
                   isMissing
                     ? isSolved
                       ? 'bg-emerald-200 border-emerald-400 animate-pulse'
@@ -742,13 +900,13 @@ function PatternTrainModule({ soundEnabled, onSuccess, onBack }) {
 
       <div className="text-center">
         <div className="text-xs font-bold text-slate-500 mb-3">請選擇正確車廂補全軌道：</div>
-        <div className="flex justify-center gap-4">
+        <div className="flex justify-center gap-3 sm:gap-4">
           {current.options.map((opt, i) => (
             <button
               key={i}
               onClick={() => handleOptionClick(opt)}
               disabled={isSolved}
-              className={`w-16 h-16 rounded-2xl text-3xl flex items-center justify-center shadow-md transition border-3 active:scale-95 ${
+              className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl text-2xl sm:text-3xl flex items-center justify-center shadow-md transition border-3 active:scale-95 ${
                 selected === opt
                   ? opt === current.answer
                     ? 'bg-emerald-100 border-emerald-500 ring-4 ring-emerald-200'
@@ -763,7 +921,7 @@ function PatternTrainModule({ soundEnabled, onSuccess, onBack }) {
 
         {isSolved && (
           <div className="mt-6 animate-fade-in">
-            <div className="bg-purple-100 text-purple-900 font-black px-4 py-2 rounded-2xl mb-3 inline-block">
+            <div className="bg-purple-100 text-purple-900 font-black px-4 py-2 rounded-2xl mb-3 inline-block text-sm sm:text-base">
               🎉 規律破解成功！火車嘟嘟嘟開動囉～
             </div>
             <div>
@@ -773,7 +931,7 @@ function PatternTrainModule({ soundEnabled, onSuccess, onBack }) {
                   setSelected(null);
                   setIsSolved(false);
                 }}
-                className="bg-amber-500 hover:bg-amber-600 text-white font-black px-6 py-3 rounded-2xl shadow-lg border-b-4 border-amber-700 active:scale-95 transition"
+                className="bg-amber-500 hover:bg-amber-600 text-white font-black px-6 py-3 rounded-2xl shadow-lg border-b-4 border-amber-700 active:scale-95 transition text-sm sm:text-base"
               >
                 下一節車廂 ⭐️ +3
               </button>
@@ -785,7 +943,9 @@ function PatternTrainModule({ soundEnabled, onSuccess, onBack }) {
   );
 }
 
+// ==========================================
 // 5. 神奇天平模組
+// ==========================================
 function BalanceScaleModule({ soundEnabled, onSuccess, onBack }) {
   const [rabbitCount, setRabbitCount] = useState(0);
   const targetRabbits = 4;
@@ -805,9 +965,9 @@ function BalanceScaleModule({ soundEnabled, onSuccess, onBack }) {
   };
 
   return (
-    <div className="bg-white border-4 border-sky-300 rounded-3xl p-6 shadow-2xl">
+    <div className="bg-white border-4 border-sky-300 rounded-3xl p-4 sm:p-6 shadow-2xl max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-4">
-        <button onClick={onBack} className="text-slate-500 font-black text-sm flex items-center gap-1 hover:text-slate-800">
+        <button onClick={onBack} className="text-slate-500 font-black text-xs sm:text-sm flex items-center gap-1 hover:text-slate-800">
           ← 返回地圖
         </button>
         <span className="bg-sky-100 text-sky-900 font-black text-xs px-3 py-1 rounded-full border border-sky-300">
@@ -816,38 +976,38 @@ function BalanceScaleModule({ soundEnabled, onSuccess, onBack }) {
       </div>
 
       <div className="text-center mb-4">
-        <h2 className="text-2xl font-black text-slate-800">神奇小動物平衡天平</h2>
-        <div className="inline-block bg-amber-100 border border-amber-300 px-4 py-1 rounded-full text-xs font-bold text-amber-900 mt-2">
+        <h2 className="text-xl sm:text-2xl font-black text-slate-800">神奇小動物平衡天平</h2>
+        <div className="inline-block bg-amber-100 border border-amber-300 px-3 py-1 rounded-full text-xs font-bold text-amber-900 mt-1.5">
           已知：1 隻大熊 🐻 = 2 隻小兔 🐰
         </div>
-        <p className="text-slate-500 text-xs font-bold mt-2">
+        <p className="text-slate-500 text-xs sm:text-sm font-bold mt-2">
           左邊放了 <span className="text-sky-700 font-black">2 隻大熊 🐻🐻</span>，右邊需要幾隻小兔 🐰 才能平手？
         </p>
       </div>
 
-      <div className="bg-sky-50/80 p-6 rounded-3xl border-3 border-sky-200 mb-6 shadow-inner relative h-48 flex items-center justify-center">
+      <div className="bg-sky-50/80 p-4 sm:p-6 rounded-3xl border-3 border-sky-200 mb-6 shadow-inner relative h-44 sm:h-48 flex items-center justify-center">
         <div
-          className="w-64 h-3 bg-amber-800 rounded-full transition-transform duration-500 ease-out relative flex justify-between items-center"
+          className="w-56 sm:w-64 h-3 bg-amber-800 rounded-full transition-transform duration-500 ease-out relative flex justify-between items-center"
           style={{ transform: `rotate(${tiltAngle}deg)` }}
         >
           <div className="absolute -left-2 top-2 flex flex-col items-center">
-            <div className="w-0.5 h-12 bg-slate-400" />
-            <div className="w-24 h-12 bg-amber-200 border-2 border-amber-500 rounded-b-2xl shadow-md flex items-center justify-center text-xl">
+            <div className="w-0.5 h-10 sm:h-12 bg-slate-400" />
+            <div className="w-20 sm:w-24 h-10 sm:h-12 bg-amber-200 border-2 border-amber-500 rounded-b-2xl shadow-md flex items-center justify-center text-lg sm:text-xl">
               🐻🐻
             </div>
           </div>
 
           <div className="absolute -right-2 top-2 flex flex-col items-center">
-            <div className="w-0.5 h-12 bg-slate-400" />
-            <div className="w-24 h-12 bg-amber-200 border-2 border-amber-500 rounded-b-2xl shadow-md flex items-center justify-center text-sm font-black flex-wrap p-1">
+            <div className="w-0.5 h-10 sm:h-12 bg-slate-400" />
+            <div className="w-20 sm:w-24 h-10 sm:h-12 bg-amber-200 border-2 border-amber-500 rounded-b-2xl shadow-md flex items-center justify-center text-xs sm:text-sm font-black flex-wrap p-1">
               {rabbitCount === 0 ? '空' : Array.from({ length: rabbitCount }).map((_, i) => <span key={i}>🐰</span>)}
             </div>
           </div>
         </div>
 
         <div className="absolute bottom-4 flex flex-col items-center">
-          <div className="w-4 h-12 bg-amber-900 rounded-t-md" />
-          <div className="w-16 h-3 bg-amber-950 rounded-full" />
+          <div className="w-4 h-10 sm:h-12 bg-amber-900 rounded-t-md" />
+          <div className="w-14 sm:w-16 h-3 bg-amber-950 rounded-full" />
         </div>
       </div>
 
@@ -856,28 +1016,26 @@ function BalanceScaleModule({ soundEnabled, onSuccess, onBack }) {
           <div className="flex justify-center gap-3">
             <button
               onClick={() => setRabbitCount((p) => Math.max(0, p - 1))}
-              className="px-4 py-2 bg-slate-100 border-2 border-slate-300 rounded-xl font-black"
+              className="px-3 sm:px-4 py-2 bg-slate-100 border-2 border-slate-300 rounded-xl font-black text-xs sm:text-sm"
             >
               - 1 隻
             </button>
             <button
               onClick={addRabbit}
-              className="bg-sky-500 hover:bg-sky-600 text-white font-black px-6 py-3 rounded-2xl shadow-lg border-b-4 border-sky-700 active:scale-95 transition"
+              className="bg-sky-500 hover:bg-sky-600 text-white font-black px-4 sm:px-6 py-2.5 sm:py-3 rounded-2xl shadow-lg border-b-4 border-sky-700 active:scale-95 transition text-xs sm:text-sm"
             >
               放一隻小兔 🐰（目前 {rabbitCount} 隻）
             </button>
           </div>
         ) : (
           <div className="animate-fade-in">
-            <div className="bg-emerald-100 text-emerald-900 font-black px-4 py-2 rounded-2xl mb-3 inline-block">
+            <div className="bg-emerald-100 text-emerald-900 font-black px-4 py-2 rounded-2xl mb-3 inline-block text-sm sm:text-base">
               🎉 完美平衡！2 隻熊 = 4 隻小兔！
             </div>
             <div>
               <button
-                onClick={() => {
-                  setRabbitCount(0);
-                }}
-                className="bg-amber-500 hover:bg-amber-600 text-white font-black px-6 py-3 rounded-2xl shadow-lg border-b-4 border-amber-700 active:scale-95 transition"
+                onClick={() => setRabbitCount(0)}
+                className="bg-amber-500 hover:bg-amber-600 text-white font-black px-6 py-3 rounded-2xl shadow-lg border-b-4 border-amber-700 active:scale-95 transition text-sm sm:text-base"
               >
                 再玩一次 ⭐️ +3
               </button>
@@ -889,37 +1047,63 @@ function BalanceScaleModule({ soundEnabled, onSuccess, onBack }) {
   );
 }
 
-// 6. 魔法形狀王國模組
+// ==========================================
+// 6. 魔法形狀王國模組 (包含更多 2D & 3D 圖形)
+// ==========================================
 function ShapesModule({ soundEnabled, onSuccess, onBack }) {
   const shapeQuestions = [
     {
-      question: "小精靈要蓋房子屋頂，需要找一個【有 3 條邊、3 個尖尖角】的形狀！",
-      targetName: "三角形",
-      targetIcon: "🔺",
-      options: ["🔴", "🔺", "🟦", "⭐"],
+      question: "請找出【四條邊一樣長、平行傾斜】的「菱形」！",
+      targetName: "菱形",
+      options: ["正方形", "菱形", "長方形", "圓形"],
+      hint: "像風箏一樣四條邊相等喔！",
     },
     {
-      question: "請找出【四條邊一樣長、有 4 個直直角】的正方形！",
-      targetName: "正方形",
-      targetIcon: "🟦",
-      options: ["🔴", "🔺", "🟦", "🟡"],
+      question: "請找出【對邊一樣長、有 4 個直角】的「長方形」！",
+      targetName: "長方形",
+      options: ["三角形", "長方形", "梯形", "正方形"],
+      hint: "就像公車或門一樣扁扁長長的喔！",
     },
     {
-      question: "車輪滾滾滾！請找出【完全沒有角、圓滾滾】的圓形！",
-      targetName: "圓形",
-      targetIcon: "🔴",
-      options: ["🔴", "🟩", "🔺", "💎"],
+      question: "請找出【只有一對對邊平行】的「梯形」！",
+      targetName: "梯形",
+      options: ["梯形", "平行四邊形", "菱形", "圓形"],
+      hint: "像溜滑梯或是梯子一樣的形狀喔！",
+    },
+    {
+      question: "請找出【兩組對邊互相平行】的「平行四邊形」！",
+      targetName: "平行四邊形",
+      options: ["三角形", "平行四邊形", "正方形", "長方形"],
+      hint: "傾斜斜的四邊形喔！",
+    },
+    {
+      question: "請找出 3D 立體有 6 個正方形面的「正方體」！",
+      targetName: "正方體",
+      options: ["正方形", "正方體", "圓柱體", "圓錐體"],
+      hint: "就像骰子或積木一樣立體的喔！",
+    },
+    {
+      question: "請找出上下是圓形、像水管一樣的「圓柱體」！",
+      targetName: "圓柱體",
+      options: ["圓柱體", "圓錐體", "圓形", "正方體"],
+      hint: "就像飲料罐一樣圓圓長長的喔！",
+    },
+    {
+      question: "請找出頂端尖尖、底部是圓形的「圓錐體」！",
+      targetName: "圓錐體",
+      options: ["圓錐體", "圓柱體", "三角形", "菱形"],
+      hint: "就像冰淇淋甜筒或生日派對帽子喔！",
     },
   ];
 
   const [qIndex, setQIndex] = useState(0);
   const current = shapeQuestions[qIndex % shapeQuestions.length];
-  const [selected, setSelected] = useState(null);
+  const [selectedOption, setSelectedOption] = useState(null);
   const [isCorrect, setIsCorrect] = useState(false);
 
-  const handleSelect = (opt) => {
-    setSelected(opt);
-    if (opt === current.targetIcon) {
+  const handleSelect = (shapeName) => {
+    setSelectedOption(shapeName);
+    if (shapeName === current.targetName) {
       playSound('correct', soundEnabled);
       setIsCorrect(true);
       onSuccess();
@@ -929,57 +1113,59 @@ function ShapesModule({ soundEnabled, onSuccess, onBack }) {
   };
 
   return (
-    <div className="bg-white border-4 border-teal-300 rounded-3xl p-6 shadow-2xl">
+    <div className="bg-white border-4 border-teal-300 rounded-3xl p-4 sm:p-6 shadow-2xl max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-4">
-        <button onClick={onBack} className="text-slate-500 font-black text-sm flex items-center gap-1 hover:text-slate-800">
+        <button onClick={onBack} className="text-slate-500 font-black text-xs sm:text-sm flex items-center gap-1 hover:text-slate-800">
           ← 返回地圖
         </button>
         <span className="bg-teal-100 text-teal-900 font-black text-xs px-3 py-1 rounded-full border border-teal-300">
-          幾何圖形辨識
+          2D/3D 幾何特徵王國
         </span>
       </div>
 
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-black text-slate-800">魔法形狀王國</h2>
-        <p className="text-slate-600 text-sm font-bold mt-2 bg-teal-50 border-2 border-teal-200 p-3 rounded-2xl max-w-md mx-auto">
+      <div className="text-center mb-5">
+        <h2 className="text-xl sm:text-2xl font-black text-slate-800">魔法形狀王國</h2>
+        <p className="text-slate-600 text-xs sm:text-sm font-bold mt-2 bg-teal-50 border-2 border-teal-200 p-3 rounded-2xl max-w-md mx-auto">
           {current.question}
         </p>
       </div>
 
-      <div className="max-w-sm mx-auto grid grid-cols-2 gap-4 mb-6">
-        {current.options.map((opt, i) => (
+      {/* 互動 SVG 圖形選項 Grid */}
+      <div className="max-w-md mx-auto grid grid-cols-2 gap-3 sm:gap-4 mb-6">
+        {current.options.map((shapeName, i) => (
           <button
             key={i}
-            onClick={() => handleSelect(opt)}
+            onClick={() => handleSelect(shapeName)}
             disabled={isCorrect}
-            className={`h-24 rounded-3xl text-5xl flex items-center justify-center shadow-lg border-4 transition-all active:scale-95 ${
-              selected === opt
-                ? opt === current.targetIcon
+            className={`p-3 sm:p-4 rounded-3xl flex flex-col items-center justify-center gap-2 shadow-lg border-4 transition-all active:scale-95 ${
+              selectedOption === shapeName
+                ? shapeName === current.targetName
                   ? 'bg-emerald-100 border-emerald-500 ring-4 ring-emerald-200 scale-105'
                   : 'bg-rose-100 border-rose-400'
                 : 'bg-white border-teal-100 hover:border-teal-300'
             }`}
           >
-            {opt}
+            <ShapeSVG type={shapeName} className="w-14 h-14 sm:w-16 sm:h-16" />
+            <span className="text-xs sm:text-sm font-black text-slate-800">{shapeName}</span>
           </button>
         ))}
       </div>
 
       {isCorrect && (
         <div className="text-center animate-fade-in">
-          <div className="bg-teal-100 text-teal-900 font-black px-4 py-2 rounded-2xl mb-4 inline-block border border-teal-300">
-            🎉 太棒了！成功找到【{current.targetName}】！
+          <div className="bg-teal-100 text-teal-900 font-black px-4 py-2 rounded-2xl mb-4 inline-block border border-teal-300 text-sm sm:text-base">
+            🎉 太棒了！成功識別【{current.targetName}】！
           </div>
           <div>
             <button
               onClick={() => {
                 setQIndex((prev) => prev + 1);
-                setSelected(null);
+                setSelectedOption(null);
                 setIsCorrect(false);
               }}
-              className="bg-amber-500 hover:bg-amber-600 text-white font-black px-6 py-3 rounded-2xl shadow-lg border-b-4 border-amber-700 active:scale-95 transition"
+              className="bg-amber-500 hover:bg-amber-600 text-white font-black px-6 py-3 rounded-2xl shadow-lg border-b-4 border-amber-700 active:scale-95 transition text-sm sm:text-base"
             >
-              挑戰下一關形狀 ⭐️ +3
+              挑戰下一個幾何形狀 ⭐️ +3
             </button>
           </div>
         </div>
@@ -988,7 +1174,9 @@ function ShapesModule({ soundEnabled, onSuccess, onBack }) {
   );
 }
 
+// ==========================================
 // 7. 精靈換裝小屋與成就徽章牆
+// ==========================================
 function SpriteHomeView({
   stars,
   badges,
@@ -1008,9 +1196,9 @@ function SpriteHomeView({
   ];
 
   return (
-    <div className="bg-white border-4 border-pink-300 rounded-3xl p-6 shadow-2xl">
+    <div className="bg-white border-4 border-pink-300 rounded-3xl p-4 sm:p-6 shadow-2xl max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-4">
-        <button onClick={onBack} className="text-slate-500 font-black text-sm flex items-center gap-1 hover:text-slate-800">
+        <button onClick={onBack} className="text-slate-500 font-black text-xs sm:text-sm flex items-center gap-1 hover:text-slate-800">
           ← 返回地圖
         </button>
         <span className="bg-pink-100 text-pink-900 font-black text-xs px-3 py-1 rounded-full border border-pink-300">
@@ -1018,19 +1206,19 @@ function SpriteHomeView({
         </span>
       </div>
 
-      <div className="bg-gradient-to-b from-pink-100 to-amber-50 p-6 rounded-3xl border-3 border-pink-200 mb-6 flex flex-col items-center">
+      <div className="bg-gradient-to-b from-pink-100 to-amber-50 p-5 rounded-3xl border-3 border-pink-200 mb-6 flex flex-col items-center">
         <div className="relative mb-3">
-          <div className={`w-28 h-28 rounded-full ${spriteColor} shadow-xl flex items-center justify-center relative border-4 border-white`}>
-            {spriteAccessory === 'crown' && <span className="absolute -top-6 text-4xl animate-bounce">👑</span>}
-            {spriteAccessory === 'hat' && <span className="absolute -top-7 text-4xl animate-bounce">🧙‍♂️</span>}
-            {spriteAccessory === 'glasses' && <span className="absolute text-3xl">🕶️</span>}
-            {spriteAccessory === 'wings' && <span className="absolute -right-5 text-4xl">🧚</span>}
+          <div className={`w-24 h-24 sm:w-28 sm:h-28 rounded-full ${spriteColor} shadow-xl flex items-center justify-center relative border-4 border-white`}>
+            {spriteAccessory === 'crown' && <span className="absolute -top-6 text-3xl sm:text-4xl animate-bounce">👑</span>}
+            {spriteAccessory === 'hat' && <span className="absolute -top-7 text-3xl sm:text-4xl animate-bounce">🧙‍♂️</span>}
+            {spriteAccessory === 'glasses' && <span className="absolute text-2xl sm:text-3xl">🕶️</span>}
+            {spriteAccessory === 'wings' && <span className="absolute -right-5 text-3xl sm:text-4xl">🧚</span>}
 
-            <div className="flex gap-3">
-              <div className="w-3.5 h-3.5 bg-slate-900 rounded-full" />
-              <div className="w-3.5 h-3.5 bg-slate-900 rounded-full" />
+            <div className="flex gap-2 sm:gap-3">
+              <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 bg-slate-900 rounded-full" />
+              <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 bg-slate-900 rounded-full" />
             </div>
-            <div className="w-6 h-3 border-b-4 border-slate-900 rounded-full absolute bottom-6" />
+            <div className="w-5 sm:w-6 h-2.5 sm:h-3 border-b-4 border-slate-900 rounded-full absolute bottom-5 sm:bottom-6" />
           </div>
         </div>
 
@@ -1049,11 +1237,11 @@ function SpriteHomeView({
       </div>
 
       <div className="mb-6">
-        <h4 className="text-base font-black text-slate-800 mb-3 flex items-center gap-1.5">
-          <Gift className="w-5 h-5 text-pink-500" />
+        <h4 className="text-xs sm:text-base font-black text-slate-800 mb-3 flex items-center gap-1.5">
+          <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-pink-500" />
           <span>精靈換裝衣帽間（累積星星解鎖，不扣星星）</span>
         </h4>
-        <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2.5 sm:gap-3">
           {accessories.map((acc) => {
             const isUnlocked = stars >= acc.cost;
             const isEquipped = spriteAccessory === acc.id;
@@ -1066,7 +1254,7 @@ function SpriteHomeView({
                   playSound('tap', soundEnabled);
                   setSpriteAccessory(acc.id);
                 }}
-                className={`p-3 rounded-2xl border-3 flex flex-col items-center justify-center transition ${
+                className={`p-2.5 sm:p-3 rounded-2xl border-3 flex flex-col items-center justify-center transition ${
                   isEquipped
                     ? 'bg-pink-100 border-pink-500 ring-2 ring-pink-300 scale-105'
                     : isUnlocked
@@ -1074,8 +1262,8 @@ function SpriteHomeView({
                     : 'bg-slate-50 border-dashed border-slate-200 opacity-60'
                 }`}
               >
-                <span className="text-3xl mb-1">{acc.icon}</span>
-                <span className="text-xs font-black text-slate-700">{acc.name}</span>
+                <span className="text-2xl sm:text-3xl mb-1">{acc.icon}</span>
+                <span className="text-[11px] sm:text-xs font-black text-slate-700">{acc.name}</span>
                 {!isUnlocked && (
                   <span className="text-[10px] text-amber-600 font-bold mt-1 flex items-center gap-0.5">
                     <Lock className="w-2.5 h-2.5" /> {acc.cost}⭐️
@@ -1088,24 +1276,24 @@ function SpriteHomeView({
       </div>
 
       <div>
-        <h4 className="text-base font-black text-slate-800 mb-3 flex items-center gap-1.5">
-          <Award className="w-5 h-5 text-amber-500" />
+        <h4 className="text-xs sm:text-base font-black text-slate-800 mb-3 flex items-center gap-1.5">
+          <Award className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
           <span>冒險徽章收集館</span>
         </h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {badges.map((b) => (
             <div
               key={b.id}
-              className={`p-3.5 rounded-2xl border-2 flex items-center gap-3 ${
+              className={`p-3 rounded-2xl border-2 flex items-center gap-3 ${
                 b.unlocked ? 'bg-amber-50 border-amber-300' : 'bg-slate-50 border-dashed border-slate-200 opacity-50'
               }`}
             >
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${b.unlocked ? 'bg-amber-200' : 'bg-slate-200'}`}>
+              <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-xl sm:text-2xl ${b.unlocked ? 'bg-amber-200' : 'bg-slate-200'}`}>
                 {b.unlocked ? b.icon : '🔒'}
               </div>
               <div>
-                <h5 className="text-sm font-black text-slate-800">{b.name}</h5>
-                <p className="text-slate-500 text-xs font-bold">{b.desc}</p>
+                <h5 className="text-xs sm:text-sm font-black text-slate-800">{b.name}</h5>
+                <p className="text-slate-500 text-[11px] sm:text-xs font-bold">{b.desc}</p>
               </div>
             </div>
           ))}
@@ -1115,7 +1303,9 @@ function SpriteHomeView({
   );
 }
 
+// ==========================================
 // 8. 家長守護與學習儀表板
+// ==========================================
 function ParentDashboardView({
   completedCounts,
   stars,
@@ -1126,9 +1316,9 @@ function ParentDashboardView({
   onBack,
 }) {
   return (
-    <div className="bg-white border-4 border-indigo-300 rounded-3xl p-6 shadow-2xl">
+    <div className="bg-white border-4 border-indigo-300 rounded-3xl p-4 sm:p-6 shadow-2xl max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-4">
-        <button onClick={onBack} className="text-slate-500 font-black text-sm flex items-center gap-1 hover:text-slate-800">
+        <button onClick={onBack} className="text-slate-500 font-black text-xs sm:text-sm flex items-center gap-1 hover:text-slate-800">
           ← 返回地圖
         </button>
         <span className="bg-indigo-100 text-indigo-900 font-black text-xs px-3 py-1 rounded-full border border-indigo-300">
@@ -1136,8 +1326,8 @@ function ParentDashboardView({
         </span>
       </div>
 
-      <div className="mb-6">
-        <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
+      <div className="mb-5">
+        <h3 className="text-lg sm:text-xl font-black text-slate-800 flex items-center gap-2">
           <Shield className="w-5 h-5 text-indigo-600" />
           <span>寶貝的數學思維成長報告</span>
         </h3>
@@ -1146,29 +1336,29 @@ function ParentDashboardView({
         </p>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="bg-amber-50 p-3.5 rounded-2xl border border-amber-200 text-center">
-          <div className="text-2xl font-black text-amber-700">{stars}</div>
-          <div className="text-xs font-bold text-amber-900 mt-1">累積星星</div>
+      <div className="grid grid-cols-3 gap-2.5 sm:gap-3 mb-6">
+        <div className="bg-amber-50 p-3 rounded-2xl border border-amber-200 text-center">
+          <div className="text-xl sm:text-2xl font-black text-amber-700">{stars}</div>
+          <div className="text-[11px] sm:text-xs font-bold text-amber-900 mt-1">累積星星</div>
         </div>
-        <div className="bg-rose-50 p-3.5 rounded-2xl border border-rose-200 text-center">
-          <div className="text-2xl font-black text-rose-700">{streakDays} 天</div>
-          <div className="text-xs font-bold text-rose-900 mt-1">連續打卡</div>
+        <div className="bg-rose-50 p-3 rounded-2xl border border-rose-200 text-center">
+          <div className="text-xl sm:text-2xl font-black text-rose-700">{streakDays} 天</div>
+          <div className="text-[11px] sm:text-xs font-bold text-rose-900 mt-1">連續打卡</div>
         </div>
-        <div className="bg-emerald-50 p-3.5 rounded-2xl border border-emerald-200 text-center">
-          <div className="text-2xl font-black text-emerald-700">
+        <div className="bg-emerald-50 p-3 rounded-2xl border border-emerald-200 text-center">
+          <div className="text-xl sm:text-2xl font-black text-emerald-700">
             {completedCounts.tenFrame + completedCounts.numberLine + completedCounts.patterns + completedCounts.balance + completedCounts.shapes}
           </div>
-          <div className="text-xs font-bold text-emerald-900 mt-1">累積通關數</div>
+          <div className="text-[11px] sm:text-xs font-bold text-emerald-900 mt-1">累積通關數</div>
         </div>
       </div>
 
-      <div className="space-y-4 bg-slate-50 p-5 rounded-2xl border border-slate-200 mb-6">
-        <h4 className="text-sm font-black text-slate-700">五大維度思維雷達</h4>
+      <div className="space-y-4 bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200 mb-6">
+        <h4 className="text-xs sm:text-sm font-black text-slate-700">五大維度思維雷達</h4>
 
         <div>
           <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-            <span>十格陣數感與湊十法</span>
+            <span>十格陣數感與拖曳湊十法</span>
             <span className="text-amber-600">{Math.min(100, completedCounts.tenFrame * 25)}%</span>
           </div>
           <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
@@ -1178,7 +1368,7 @@ function ParentDashboardView({
 
         <div>
           <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-            <span>數軸空間與加減運算</span>
+            <span>數軸空間與逐格跳躍加減數</span>
             <span className="text-emerald-600">{Math.min(100, completedCounts.numberLine * 25)}%</span>
           </div>
           <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
@@ -1208,7 +1398,7 @@ function ParentDashboardView({
 
         <div>
           <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-            <span>幾何圖形與空間特徵</span>
+            <span>2D/3D 幾何圖形與空間特徵</span>
             <span className="text-teal-600">{Math.min(100, completedCounts.shapes * 25)}%</span>
           </div>
           <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
@@ -1217,12 +1407,12 @@ function ParentDashboardView({
         </div>
       </div>
 
-      <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-200 flex items-center justify-between">
+      <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-200 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Clock className="w-6 h-6 text-indigo-600" />
+          <Clock className="w-6 h-6 text-indigo-600 shrink-0" />
           <div>
-            <h5 className="text-sm font-black text-slate-800">單次使用時間護眼提醒</h5>
-            <p className="text-xs text-slate-500 font-bold">
+            <h5 className="text-xs sm:text-sm font-black text-slate-800">單次使用時間護眼提醒</h5>
+            <p className="text-[11px] sm:text-xs text-slate-500 font-bold">
               距離下次提醒還剩：<span className="text-indigo-700 font-black">{remainingMinutes} 分鐘</span>
             </p>
           </div>
@@ -1245,3 +1435,6 @@ function ParentDashboardView({
     </div>
   );
 }
+```eof
+
+已為您將完整的最新互動代碼整合於右側的 `src/App.jsx` 檔案中！您可以點擊右側的 **Preview** 預覽測試全新的逐格跳跳蛙、拖曳星星十格陣與多樣化 2D/3D 幾何圖形。
