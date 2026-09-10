@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Component } from 'react';
 import {
   Star,
   Trophy,
@@ -18,8 +18,52 @@ import {
   Flame,
   RotateCcw,
   Shapes,
-  MoveHorizontal
+  MoveHorizontal,
+  AlertTriangle
 } from 'lucide-react';
+
+// --- 防空白頁 React 錯誤捕捉組件 (Error Boundary) ---
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, errorInfo: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("App Crash Error:", error, errorInfo);
+    this.setState({ errorInfo });
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-amber-50 flex items-center justify-center p-4 text-center">
+          <div className="bg-white p-6 rounded-3xl shadow-2xl border-4 border-amber-300 max-w-md w-full">
+            <div className="text-5xl mb-3">🪄</div>
+            <h2 className="text-xl font-black text-slate-800 mb-2">數學魔法暫時休息中</h2>
+            <p className="text-slate-600 text-xs font-bold mb-4">
+              系統偵測到小小的運行異常，請點擊下方按鈕重新啟動冒險！
+            </p>
+            <button
+              onClick={() => {
+                this.setState({ hasError: false });
+                window.location.reload();
+              }}
+              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-3 rounded-2xl shadow-lg border-b-4 border-emerald-700 active:scale-95 transition"
+            >
+              🔄 重新加載冒險畫面
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // --- Web Audio 互動音效生成器 (免外部音檔) ---
 const playSound = (type, enabled = true) => {
@@ -173,7 +217,7 @@ const ShapeSVG = ({ type, className = "w-16 h-16" }) => {
   }
 };
 
-export default function App() {
+function MainApp() {
   const [currentScreen, setCurrentScreen] = useState('map');
   const [soundEnabled, setSoundEnabled] = useState(true);
 
@@ -195,11 +239,11 @@ export default function App() {
   const [celebration, setCelebration] = useState(false);
 
   const badges = [
-    { id: 'ten-master', name: '十格陣大師', desc: '完成湊十法練習', icon: '🌟', unlocked: completedCounts.tenFrame >= 3 },
-    { id: 'frog-jumper', name: '數軸跳跳蛙', desc: '掌握前跳加法與後退減法', icon: '🐸', unlocked: completedCounts.numberLine >= 3 },
-    { id: 'pattern-detective', name: '規律大偵探', desc: '破解小火車圖形密碼', icon: '🔍', unlocked: completedCounts.patterns >= 3 },
-    { id: 'balance-king', name: '天平平衡大師', desc: '成功解出等量代換難題', icon: '⚖️', unlocked: completedCounts.balance >= 2 },
-    { id: 'shape-wizard', name: '形狀魔法師', desc: '認識幾何圖形與 3D 體積特徵', icon: '📐', unlocked: completedCounts.shapes >= 2 },
+    { id: 'ten-master', name: '十格陣大師', desc: '完成湊十法練習', icon: '🌟', unlocked: (completedCounts.tenFrame || 0) >= 3 },
+    { id: 'frog-jumper', name: '數軸跳跳蛙', desc: '掌握前跳加法與後退減法', icon: '🐸', unlocked: (completedCounts.numberLine || 0) >= 3 },
+    { id: 'pattern-detective', name: '規律大偵探', desc: '破解小火車圖形密碼', icon: '🔍', unlocked: (completedCounts.patterns || 0) >= 3 },
+    { id: 'balance-king', name: '天平平衡大師', desc: '成功解出等量代換難題', icon: '⚖️', unlocked: (completedCounts.balance || 0) >= 2 },
+    { id: 'shape-wizard', name: '形狀魔法師', desc: '認識幾何圖形與 3D 體積特徵', icon: '📐', unlocked: (completedCounts.shapes || 0) >= 2 },
     { id: 'streak-star', name: '堅持小勇士', desc: '連續學習打卡 3 天', icon: '🔥', unlocked: streakDays >= 3 },
     { id: 'super-sprite', name: '小小奧數王', desc: '收集超過 20 顆數學星星', icon: '👑', unlocked: stars >= 20 },
   ];
@@ -313,7 +357,7 @@ export default function App() {
             soundEnabled={soundEnabled}
             onSuccess={() => {
               triggerReward(2);
-              setCompletedCounts((prev) => ({ ...prev, tenFrame: prev.tenFrame + 1 }));
+              setCompletedCounts((prev) => ({ ...prev, tenFrame: (prev.tenFrame || 0) + 1 }));
             }}
             onBack={() => setCurrentScreen('map')}
           />
@@ -324,7 +368,7 @@ export default function App() {
             soundEnabled={soundEnabled}
             onSuccess={() => {
               triggerReward(2);
-              setCompletedCounts((prev) => ({ ...prev, numberLine: prev.numberLine + 1 }));
+              setCompletedCounts((prev) => ({ ...prev, numberLine: (prev.numberLine || 0) + 1 }));
             }}
             onBack={() => setCurrentScreen('map')}
           />
@@ -335,7 +379,7 @@ export default function App() {
             soundEnabled={soundEnabled}
             onSuccess={() => {
               triggerReward(3);
-              setCompletedCounts((prev) => ({ ...prev, patterns: prev.patterns + 1 }));
+              setCompletedCounts((prev) => ({ ...prev, patterns: (prev.patterns || 0) + 1 }));
             }}
             onBack={() => setCurrentScreen('map')}
           />
@@ -346,7 +390,7 @@ export default function App() {
             soundEnabled={soundEnabled}
             onSuccess={() => {
               triggerReward(3);
-              setCompletedCounts((prev) => ({ ...prev, balance: prev.balance + 1 }));
+              setCompletedCounts((prev) => ({ ...prev, balance: (prev.balance || 0) + 1 }));
             }}
             onBack={() => setCurrentScreen('map')}
           />
@@ -357,7 +401,7 @@ export default function App() {
             soundEnabled={soundEnabled}
             onSuccess={() => {
               triggerReward(3);
-              setCompletedCounts((prev) => ({ ...prev, shapes: prev.shapes + 1 }));
+              setCompletedCounts((prev) => ({ ...prev, shapes: (prev.shapes || 0) + 1 }));
             }}
             onBack={() => setCurrentScreen('map')}
           />
@@ -410,10 +454,18 @@ export default function App() {
   );
 }
 
-// ==========================================
+// 主進入點（包覆 Error Boundary）
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <MainApp />
+    </ErrorBoundary>
+  );
+}
+
 // 1. 世界地圖視圖
-// ==========================================
 function WorldMapView({ onSelectLevel, completedCounts, spriteAccessory, spriteColor }) {
+  const counts = completedCounts || {};
   return (
     <div className="space-y-5 sm:space-y-6">
       <div className="bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 rounded-3xl p-5 sm:p-6 shadow-xl border-4 border-white flex items-center justify-between relative overflow-hidden">
@@ -454,7 +506,7 @@ function WorldMapView({ onSelectLevel, completedCounts, spriteAccessory, spriteC
               🏰
             </div>
             <span className="bg-amber-100 text-amber-900 text-xs font-black px-3 py-1 rounded-full border border-amber-300">
-              已過關：{completedCounts.tenFrame} 次
+              已過關：{counts.tenFrame || 0} 次
             </span>
           </div>
           <h3 className="text-lg sm:text-xl font-black text-slate-800 mt-3 sm:mt-4 group-hover:text-amber-600 transition-colors">
@@ -478,7 +530,7 @@ function WorldMapView({ onSelectLevel, completedCounts, spriteAccessory, spriteC
               🐸
             </div>
             <span className="bg-emerald-100 text-emerald-900 text-xs font-black px-3 py-1 rounded-full border border-emerald-300">
-              已過關：{completedCounts.numberLine} 次
+              已過關：{counts.numberLine || 0} 次
             </span>
           </div>
           <h3 className="text-lg sm:text-xl font-black text-slate-800 mt-3 sm:mt-4 group-hover:text-emerald-600 transition-colors">
@@ -502,7 +554,7 @@ function WorldMapView({ onSelectLevel, completedCounts, spriteAccessory, spriteC
               🚂
             </div>
             <span className="bg-purple-100 text-purple-900 text-xs font-black px-3 py-1 rounded-full border border-purple-300">
-              已過關：{completedCounts.patterns} 次
+              已過關：{counts.patterns || 0} 次
             </span>
           </div>
           <h3 className="text-lg sm:text-xl font-black text-slate-800 mt-3 sm:mt-4 group-hover:text-purple-600 transition-colors">
@@ -526,7 +578,7 @@ function WorldMapView({ onSelectLevel, completedCounts, spriteAccessory, spriteC
               ⚖️
             </div>
             <span className="bg-sky-100 text-sky-900 text-xs font-black px-3 py-1 rounded-full border border-sky-300">
-              已過關：{completedCounts.balance} 次
+              已過關：{counts.balance || 0} 次
             </span>
           </div>
           <h3 className="text-lg sm:text-xl font-black text-slate-800 mt-3 sm:mt-4 group-hover:text-sky-600 transition-colors">
@@ -550,7 +602,7 @@ function WorldMapView({ onSelectLevel, completedCounts, spriteAccessory, spriteC
               📐
             </div>
             <span className="bg-teal-100 text-teal-900 text-xs font-black px-3 py-1 rounded-full border border-teal-300">
-              已過關：{completedCounts.shapes} 次
+              已過關：{counts.shapes || 0} 次
             </span>
           </div>
           <h3 className="text-lg sm:text-xl font-black text-slate-800 mt-3 sm:mt-4 group-hover:text-teal-600 transition-colors">
@@ -569,9 +621,7 @@ function WorldMapView({ onSelectLevel, completedCounts, spriteAccessory, spriteC
   );
 }
 
-// ==========================================
-// 2. 湊十法模組 (逐一拖曳 / 放入星星)
-// ==========================================
+// 2. 湊十法模組
 function TenFrameModule({ soundEnabled, onSuccess, onBack }) {
   const [base, setBase] = useState(6);
   const [filledCount, setFilledCount] = useState(0);
@@ -621,7 +671,6 @@ function TenFrameModule({ soundEnabled, onSuccess, onBack }) {
         </p>
       </div>
 
-      {/* 十格陣 Grid */}
       <div className="bg-amber-100/70 p-3 sm:p-5 rounded-3xl border-4 border-amber-300 mb-6 shadow-inner">
         <div className="grid grid-cols-5 gap-2 sm:gap-3">
           {Array.from({ length: 10 }).map((_, idx) => {
@@ -652,14 +701,12 @@ function TenFrameModule({ soundEnabled, onSuccess, onBack }) {
         </div>
       </div>
 
-      {/* 算式與星星寶盒 (Star Supply Bank) */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50 border-2 border-slate-200 p-4 rounded-2xl mb-6">
         <div className="text-2xl sm:text-3xl font-black text-slate-800">
           <span className="text-amber-600">{base}</span> +{' '}
           <span className="text-emerald-600 underline font-extrabold">{filledCount}</span> = 10
         </div>
 
-        {/* 拖曳按鈕 */}
         {!isCorrect && (
           <div className="flex items-center gap-3">
             <span className="text-xs font-bold text-slate-500">星星寶盒 ➔</span>
@@ -699,9 +746,7 @@ function TenFrameModule({ soundEnabled, onSuccess, onBack }) {
   );
 }
 
-// ==========================================
-// 3. 數軸逐格跳跳蛙模組 (逐格按鍵加減數)
-// ==========================================
+// 3. 數軸逐格跳跳蛙模組
 function NumberLineModule({ soundEnabled, onSuccess, onBack }) {
   const problems = [
     { start: 3, jump: 4, type: 'add', text: '小青蛙原本在 3，請幫牠【向前跳 4 格】！' },
@@ -729,7 +774,6 @@ function NumberLineModule({ soundEnabled, onSuccess, onBack }) {
 
     playSound('jump', soundEnabled);
     let newPos = currentFrogPos;
-    const newSteps = steppedCount + 1;
 
     if (direction === 'forward') {
       newPos = Math.min(10, currentFrogPos + 1);
@@ -738,9 +782,8 @@ function NumberLineModule({ soundEnabled, onSuccess, onBack }) {
     }
 
     setCurrentFrogPos(newPos);
-    setSteppedCount(newSteps);
+    setSteppedCount((prev) => prev + 1);
 
-    // 當青蛙到達目標位置時，即完成答題並觸發過關獎勵
     if (newPos === targetAnswer) {
       setIsDone(true);
       onSuccess();
@@ -767,7 +810,6 @@ function NumberLineModule({ soundEnabled, onSuccess, onBack }) {
         </div>
       </div>
 
-      {/* 數軸展示 */}
       <div className="bg-emerald-50/90 p-4 sm:p-6 rounded-3xl border-3 border-emerald-200 mb-6 relative">
         <div className="relative h-16 mb-2">
           <div
@@ -791,7 +833,6 @@ function NumberLineModule({ soundEnabled, onSuccess, onBack }) {
         </div>
       </div>
 
-      {/* 逐格跳躍控制按鈕 (Step Buttons) */}
       <div className="text-center">
         {!isDone ? (
           <div className="flex justify-center items-center gap-3 sm:gap-4">
@@ -831,9 +872,7 @@ function NumberLineModule({ soundEnabled, onSuccess, onBack }) {
   );
 }
 
-// ==========================================
 // 4. 規律小火車模組
-// ==========================================
 function PatternTrainModule({ soundEnabled, onSuccess, onBack }) {
   const patternsList = [
     { seq: ['🍎', '🍌', '🍎', '🍌', '?'], answer: '🍎', options: ['🍎', '🍌', '🍇'], desc: '蘋果、香蕉、蘋果、香蕉...下一個是？' },
@@ -943,9 +982,7 @@ function PatternTrainModule({ soundEnabled, onSuccess, onBack }) {
   );
 }
 
-// ==========================================
 // 5. 神奇天平模組
-// ==========================================
 function BalanceScaleModule({ soundEnabled, onSuccess, onBack }) {
   const [rabbitCount, setRabbitCount] = useState(0);
   const targetRabbits = 4;
@@ -1047,52 +1084,43 @@ function BalanceScaleModule({ soundEnabled, onSuccess, onBack }) {
   );
 }
 
-// ==========================================
-// 6. 魔法形狀王國模組 (包含更多 2D & 3D 圖形)
-// ==========================================
+// 6. 魔法形狀王國模組
 function ShapesModule({ soundEnabled, onSuccess, onBack }) {
   const shapeQuestions = [
     {
       question: "請找出【四條邊一樣長、平行傾斜】的「菱形」！",
       targetName: "菱形",
       options: ["正方形", "菱形", "長方形", "圓形"],
-      hint: "像風箏一樣四條邊相等喔！",
     },
     {
       question: "請找出【對邊一樣長、有 4 個直角】的「長方形」！",
       targetName: "長方形",
       options: ["三角形", "長方形", "梯形", "正方形"],
-      hint: "就像公車或門一樣扁扁長長的喔！",
     },
     {
       question: "請找出【只有一對對邊平行】的「梯形」！",
       targetName: "梯形",
       options: ["梯形", "平行四邊形", "菱形", "圓形"],
-      hint: "像溜滑梯或是梯子一樣的形狀喔！",
     },
     {
       question: "請找出【兩組對邊互相平行】的「平行四邊形」！",
       targetName: "平行四邊形",
       options: ["三角形", "平行四邊形", "正方形", "長方形"],
-      hint: "傾斜斜的四邊形喔！",
     },
     {
       question: "請找出 3D 立體有 6 個正方形面的「正方體」！",
       targetName: "正方體",
       options: ["正方形", "正方體", "圓柱體", "圓錐體"],
-      hint: "就像骰子或積木一樣立體的喔！",
     },
     {
       question: "請找出上下是圓形、像水管一樣的「圓柱體」！",
       targetName: "圓柱體",
       options: ["圓柱體", "圓錐體", "圓形", "正方體"],
-      hint: "就像飲料罐一樣圓圓長長的喔！",
     },
     {
       question: "請找出頂端尖尖、底部是圓形的「圓錐體」！",
       targetName: "圓錐體",
       options: ["圓錐體", "圓柱體", "三角形", "菱形"],
-      hint: "就像冰淇淋甜筒或生日派對帽子喔！",
     },
   ];
 
@@ -1130,7 +1158,6 @@ function ShapesModule({ soundEnabled, onSuccess, onBack }) {
         </p>
       </div>
 
-      {/* 互動 SVG 圖形選項 Grid */}
       <div className="max-w-md mx-auto grid grid-cols-2 gap-3 sm:gap-4 mb-6">
         {current.options.map((shapeName, i) => (
           <button
@@ -1174,9 +1201,7 @@ function ShapesModule({ soundEnabled, onSuccess, onBack }) {
   );
 }
 
-// ==========================================
 // 7. 精靈換裝小屋與成就徽章牆
-// ==========================================
 function SpriteHomeView({
   stars,
   badges,
@@ -1281,7 +1306,7 @@ function SpriteHomeView({
           <span>冒險徽章收集館</span>
         </h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {badges.map((b) => (
+          {(badges || []).map((b) => (
             <div
               key={b.id}
               className={`p-3 rounded-2xl border-2 flex items-center gap-3 ${
@@ -1303,9 +1328,7 @@ function SpriteHomeView({
   );
 }
 
-// ==========================================
 // 8. 家長守護與學習儀表板
-// ==========================================
 function ParentDashboardView({
   completedCounts,
   stars,
@@ -1315,6 +1338,7 @@ function ParentDashboardView({
   soundEnabled,
   onBack,
 }) {
+  const counts = completedCounts || {};
   return (
     <div className="bg-white border-4 border-indigo-300 rounded-3xl p-4 sm:p-6 shadow-2xl max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-4">
@@ -1347,7 +1371,7 @@ function ParentDashboardView({
         </div>
         <div className="bg-emerald-50 p-3 rounded-2xl border border-emerald-200 text-center">
           <div className="text-xl sm:text-2xl font-black text-emerald-700">
-            {completedCounts.tenFrame + completedCounts.numberLine + completedCounts.patterns + completedCounts.balance + completedCounts.shapes}
+            {(counts.tenFrame || 0) + (counts.numberLine || 0) + (counts.patterns || 0) + (counts.balance || 0) + (counts.shapes || 0)}
           </div>
           <div className="text-[11px] sm:text-xs font-bold text-emerald-900 mt-1">累積通關數</div>
         </div>
@@ -1359,50 +1383,50 @@ function ParentDashboardView({
         <div>
           <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
             <span>十格陣數感與拖曳湊十法</span>
-            <span className="text-amber-600">{Math.min(100, completedCounts.tenFrame * 25)}%</span>
+            <span className="text-amber-600">{Math.min(100, (counts.tenFrame || 0) * 25)}%</span>
           </div>
           <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
-            <div className="h-full bg-amber-400 rounded-full" style={{ width: `${Math.min(100, completedCounts.tenFrame * 25)}%` }} />
+            <div className="h-full bg-amber-400 rounded-full" style={{ width: `${Math.min(100, (counts.tenFrame || 0) * 25)}%` }} />
           </div>
         </div>
 
         <div>
           <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
             <span>數軸空間與逐格跳躍加減數</span>
-            <span className="text-emerald-600">{Math.min(100, completedCounts.numberLine * 25)}%</span>
+            <span className="text-emerald-600">{Math.min(100, (counts.numberLine || 0) * 25)}%</span>
           </div>
           <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
-            <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${Math.min(100, completedCounts.numberLine * 25)}%` }} />
+            <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${Math.min(100, (counts.numberLine || 0) * 25)}%` }} />
           </div>
         </div>
 
         <div>
           <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
             <span>模式識別與圖形規律</span>
-            <span className="text-purple-600">{Math.min(100, completedCounts.patterns * 20)}%</span>
+            <span className="text-purple-600">{Math.min(100, (counts.patterns || 0) * 20)}%</span>
           </div>
           <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
-            <div className="h-full bg-purple-400 rounded-full" style={{ width: `${Math.min(100, completedCounts.patterns * 20)}%` }} />
+            <div className="h-full bg-purple-400 rounded-full" style={{ width: `${Math.min(100, (counts.patterns || 0) * 20)}%` }} />
           </div>
         </div>
 
         <div>
           <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
             <span>等量代換與邏輯推理</span>
-            <span className="text-sky-600">{Math.min(100, completedCounts.balance * 30)}%</span>
+            <span className="text-sky-600">{Math.min(100, (counts.balance || 0) * 30)}%</span>
           </div>
           <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
-            <div className="h-full bg-sky-400 rounded-full" style={{ width: `${Math.min(100, completedCounts.balance * 30)}%` }} />
+            <div className="h-full bg-sky-400 rounded-full" style={{ width: `${Math.min(100, (counts.balance || 0) * 30)}%` }} />
           </div>
         </div>
 
         <div>
           <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
             <span>2D/3D 幾何圖形與空間特徵</span>
-            <span className="text-teal-600">{Math.min(100, completedCounts.shapes * 25)}%</span>
+            <span className="text-teal-600">{Math.min(100, (counts.shapes || 0) * 25)}%</span>
           </div>
           <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
-            <div className="h-full bg-teal-400 rounded-full" style={{ width: `${Math.min(100, completedCounts.shapes * 25)}%` }} />
+            <div className="h-full bg-teal-400 rounded-full" style={{ width: `${Math.min(100, (counts.shapes || 0) * 25)}%` }} />
           </div>
         </div>
       </div>
@@ -1437,4 +1461,15 @@ function ParentDashboardView({
 }
 ```eof
 
-已為您將完整的最新互動代碼整合於右側的 `src/App.jsx` 檔案中！您可以點擊右側的 **Preview** 預覽測試全新的逐格跳跳蛙、拖曳星星十格陣與多樣化 2D/3D 幾何圖形。
+---
+
+### 💡 如果畫面仍然空白，請檢查以下兩項專案設定：
+
+1. **檢查專案根目錄的 `index.html`**：
+   確保 `<body>` 內有 `<div id="root"></div>` 且正確引入了 `src/main.jsx`：
+   
+```html
+   <body>
+     <div id="root"></div>
+     <script type="module" src="/src/main.jsx"></script>
+   </body>

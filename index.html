@@ -1,23 +1,26 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-TW">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>幼兒數學小精靈冒險記</title>
-  
-    <!-- 1. 網頁標籤分頁圖示 -->
+
+    <!-- 1. 網頁標籤分頁圖示 (Favicon) -->
     <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=2" />
-  
-    <!-- 2. iOS / iPad Safari 加入主畫面圖示 -->
-    <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png?v=2" />
-  
-    <!-- 3. Android Chrome PWA 圖示 -->
+
+    <!-- 2. iOS / iPad Safari 加入主畫面圖示與全螢幕設定 -->
+    <link rel="apple-touch-icon" href="/icon-512.png?v=2" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="數學小精靈" />
+
+    <!-- 3. Android Chrome PWA 圖示與主題色 -->
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#f59e0b" />
   </head>
-
 
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
+</html>
