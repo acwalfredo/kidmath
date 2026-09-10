@@ -802,6 +802,7 @@ function TenFrameModule({ soundEnabled, onSuccess, onBack }) {
   );
 }
 
+
 // ==========================================
 // 3. 數軸逐格跳跳蛙模組 (逐格按鍵加減數)
 // ==========================================
@@ -810,45 +811,41 @@ function NumberLineModule({ soundEnabled, onSuccess, onBack }) {
     { start: 3, jump: 4, type: 'add', text: '小青蛙原本在 3，請幫牠【向前跳 4 格】！' },
     { start: 8, jump: 3, type: 'sub', text: '小青蛙站在 8，請幫牠【向後退 3 格】！' },
     { start: 5, jump: 5, type: 'add', text: '小青蛙在 5，請幫牠【向前跳 5 格】湊滿 10！' },
+    { start: 9, jump: 4, type: 'sub', text: '小青蛙站在 9，請幫牠【向後退 4 格】！' },
   ];
 
   const [pIndex, setPIndex] = useState(0);
   const currentP = problems[pIndex % problems.length];
   const targetAnswer = currentP.type === 'add' ? currentP.start + currentP.jump : currentP.start - currentP.jump;
 
-  // 追蹤青蛙目前跳到了哪裡
   const [currentFrogPos, setCurrentFrogPos] = useState(currentP.start);
   const [steppedCount, setSteppedCount] = useState(0);
   const [isDone, setIsDone] = useState(false);
 
-  // 切換題目時重置
   useEffect(() => {
     setCurrentFrogPos(currentP.start);
     setSteppedCount(0);
     setIsDone(false);
   }, [pIndex]);
 
-  // 逐格跳躍按鈕邏輯 (+1 格 或 -1 格)
   const handleStepHop = (direction) => {
     if (isDone) return;
 
     playSound('jump', soundEnabled);
     let newPos = currentFrogPos;
-    let newSteps = steppedCount;
+    const newSteps = steppedCount + 1;
 
     if (direction === 'forward') {
       newPos = Math.min(10, currentFrogPos + 1);
-      newSteps += 1;
     } else {
       newPos = Math.max(0, currentFrogPos - 1);
-      newSteps = Math.max(0, steppedCount - 1);
     }
 
     setCurrentFrogPos(newPos);
     setSteppedCount(newSteps);
 
-    // 判斷是否精準達到目標跳躍步數與位置
-    if (newPos === targetAnswer && newSteps === currentP.jump) {
+    // 當青蛙到達目標位置時，即完成答題並觸發過關獎勵
+    if (newPos === targetAnswer) {
       setIsDone(true);
       onSuccess();
     }
@@ -856,7 +853,7 @@ function NumberLineModule({ soundEnabled, onSuccess, onBack }) {
 
   return (
     <div className="bg-white border-4 border-emerald-300 rounded-3xl p-4 sm:p-6 shadow-2xl max-w-2xl mx-auto">
-      <div className="flex items-center justify-between mb-4">
+     <div className="flex items-center justify-between mb-4">
         <button onClick={onBack} className="text-slate-500 font-black text-xs sm:text-sm flex items-center gap-1 hover:text-slate-800">
           ← 返回地圖
         </button>
