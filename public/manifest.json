@@ -1,0 +1,16 @@
+{
+    "short_name": "數學小精靈",
+    "name": "幼兒數學小精靈冒險記",
+    "icons": [
+      {
+        "src": "/icon-512.png?v=2",
+        "type": "image/png",
+        "sizes": "512x512",
+        "purpose": "any maskable"
+      }
+    ],
+    "start_url": "/",
+    "background_color": "#f0f9ff",
+    "theme_color": "#f59e0b",
+    "display": "standalone"
+  }
