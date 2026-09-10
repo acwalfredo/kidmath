@@ -144,6 +144,56 @@ const Confetti = () => {
   );
 };
 
+// --- 可自訂小精靈角色渲染組件 (支援 my-sprite-character.png 與皇冠/配件同步 Bounce) ---
+const SpriteCharacter = ({ spriteColor, spriteAccessory, size = "normal", bounce = true }) => {
+  const [imgError, setImgError] = useState(false);
+
+  const containerSizes = {
+    small: "w-12 h-12",
+    normal: "w-16 h-16 sm:w-20 sm:h-20",
+    large: "w-24 h-24 sm:w-28 sm:h-28",
+  };
+
+  const accessoryStyles = {
+    crown: "absolute -top-5 sm:-top-6 text-2xl sm:text-3xl z-10 drop-shadow-md",
+    hat: "absolute -top-6 sm:-top-7 text-2xl sm:text-3xl z-10 drop-shadow-md",
+    glasses: "absolute top-1/3 text-xl sm:text-2xl z-10 drop-shadow-md",
+    wings: "absolute -right-4 top-1/4 text-2xl sm:text-3xl z-10 drop-shadow-md",
+  };
+
+  return (
+    <div className={`relative flex flex-col items-center justify-center ${bounce ? 'animate-bounce' : ''}`}>
+      {/* 皇冠與配件 (與小精靈同在一個 Bounce 容器內，達到完美的同步彈跳) */}
+      {spriteAccessory === 'crown' && <span className={accessoryStyles.crown}>👑</span>}
+      {spriteAccessory === 'hat' && <span className={accessoryStyles.hat}>🧙‍♂️</span>}
+      {spriteAccessory === 'glasses' && <span className={accessoryStyles.glasses}>🕶️</span>}
+      {spriteAccessory === 'wings' && <span className={accessoryStyles.wings}>🧚</span>}
+
+      {/* 小精靈主體圖片 (優先使用 my-sprite-character.png，若尚未載入則優雅切換至 CSS 造型) */}
+      <div
+        className={`${containerSizes[size]} rounded-full ${spriteColor} shadow-2xl flex items-center justify-center relative border-4 border-white overflow-hidden transition-all duration-300`}
+      >
+        {!imgError ? (
+          <img
+            src="/my-sprite-character.png"
+            alt="小精靈"
+            className="w-full h-full object-cover"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center relative">
+            <div className="flex gap-1.5 sm:gap-2">
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-slate-900 rounded-full" />
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-slate-900 rounded-full" />
+            </div>
+            <div className="w-4 sm:w-5 h-1.5 sm:h-2 border-b-4 border-slate-900 rounded-full absolute bottom-3 sm:bottom-4" />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // --- Vector SVG 幾何繪圖渲染組件 (支援多樣 2D & 3D 圖形) ---
 const ShapeSVG = ({ type, className = "w-16 h-16" }) => {
   switch (type) {
@@ -271,6 +321,7 @@ function MainApp() {
     <div className="min-h-screen bg-gradient-to-b from-sky-200 via-amber-50 to-emerald-100 text-slate-800 font-sans select-none pb-12 overflow-x-hidden">
       {celebration && <Confetti />}
 
+      {/* 頂部導航欄 */}
       <header className="bg-white/90 backdrop-blur-md sticky top-0 z-40 border-b-4 border-amber-300 shadow-md px-3 sm:px-4 py-3">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
@@ -338,6 +389,7 @@ function MainApp() {
         </div>
       </header>
 
+      {/* 主要冒險畫面 */}
       <main className="max-w-4xl mx-auto px-3 sm:px-4 pt-4 sm:pt-6">
         {currentScreen === 'map' && (
           <WorldMapView
@@ -432,6 +484,7 @@ function MainApp() {
         )}
       </main>
 
+      {/* 護眼休息提醒視窗 */}
       {showRestModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl border-4 border-amber-300 animate-fade-in">
@@ -479,18 +532,14 @@ function WorldMapView({ onSelectLevel, completedCounts, spriteAccessory, spriteC
           </p>
         </div>
 
+        {/* 皇冠與小精靈插圖同步 Bounce 組合 */}
         <div className="relative flex flex-col items-center shrink-0">
-          <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full ${spriteColor} shadow-2xl flex items-center justify-center relative animate-bounce border-4 border-white`}>
-            {spriteAccessory === 'crown' && <span className="absolute -top-5 text-2xl sm:text-3xl">👑</span>}
-            {spriteAccessory === 'hat' && <span className="absolute -top-6 text-2xl sm:text-3xl">🧙‍♂️</span>}
-            {spriteAccessory === 'glasses' && <span className="absolute text-xl sm:text-2xl">🕶️</span>}
-            {spriteAccessory === 'wings' && <span className="absolute -right-4 text-2xl sm:text-3xl">🧚</span>}
-            <div className="flex gap-1.5 sm:gap-2">
-              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-slate-900 rounded-full" />
-              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-slate-900 rounded-full" />
-            </div>
-            <div className="w-4 sm:w-5 h-1.5 sm:h-2 border-b-4 border-slate-900 rounded-full absolute bottom-3 sm:bottom-4" />
-          </div>
+          <SpriteCharacter
+            spriteColor={spriteColor}
+            spriteAccessory={spriteAccessory}
+            size="normal"
+            bounce={true}
+          />
         </div>
       </div>
 
@@ -1231,18 +1280,12 @@ function SpriteHomeView({
 
       <div className="bg-gradient-to-b from-pink-100 to-amber-50 p-5 rounded-3xl border-3 border-pink-200 mb-6 flex flex-col items-center">
         <div className="relative mb-3">
-          <div className={`w-24 h-24 sm:w-28 sm:h-28 rounded-full ${spriteColor} shadow-xl flex items-center justify-center relative border-4 border-white`}>
-            {spriteAccessory === 'crown' && <span className="absolute -top-6 text-3xl sm:text-4xl animate-bounce">👑</span>}
-            {spriteAccessory === 'hat' && <span className="absolute -top-7 text-3xl sm:text-4xl animate-bounce">🧙‍♂️</span>}
-            {spriteAccessory === 'glasses' && <span className="absolute text-2xl sm:text-3xl">🕶️</span>}
-            {spriteAccessory === 'wings' && <span className="absolute -right-5 text-3xl sm:text-4xl">🧚</span>}
-
-            <div className="flex gap-2 sm:gap-3">
-              <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 bg-slate-900 rounded-full" />
-              <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 bg-slate-900 rounded-full" />
-            </div>
-            <div className="w-5 sm:w-6 h-2.5 sm:h-3 border-b-4 border-slate-900 rounded-full absolute bottom-5 sm:bottom-6" />
-          </div>
+          <SpriteCharacter
+            spriteColor={spriteColor}
+            spriteAccessory={spriteAccessory}
+            size="large"
+            bounce={true}
+          />
         </div>
 
         <div className="flex gap-2">
